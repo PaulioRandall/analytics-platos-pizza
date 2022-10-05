@@ -1,0 +1,20 @@
+---
+title: "Plato's Pizza"
+author: "Paul Williams"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Plato's Pizza
+
+## R chunk options
+
+- https://yihui.org/knitr/options/#chunk_options
+- https://kbroman.org/knitr_knutshell/pages/Rmarkdown.html
+
+```{r global-setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo=TRUE,
+  dev="svg"
+)
+```
