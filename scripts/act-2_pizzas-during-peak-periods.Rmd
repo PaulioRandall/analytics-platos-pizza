@@ -1,0 +1,118 @@
+---
+title: "Plato's Pizza: Act II"
+author: "Paul Williams"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Plato's Pizza
+
+## R chunk options
+
+- https://yihui.org/knitr/options/#chunk_options
+- https://kbroman.org/knitr_knutshell/pages/Rmarkdown.html
+
+## Setup
+
+```{r setup-global-options, include=FALSE}
+knitr::opts_chunk$set(
+  echo=TRUE,
+  dev="svg"
+)
+```
+
+I find installing all dependencies upfront helps identify broken or unknown
+packages early so I don't have to break focus on primary task to sort it out.
+It does take longer to get started but means we won't be waiting for
+downloads and installs whilst we're exploring.
+
+```{r install-packages, include=FALSE}
+install.packages("tidyverse")
+install.packages("ggplot2")
+```
+
+## Loading the data
+
+There isn't a lot of data in this dataset so I'm going to go ahead read in
+all files so they are ready. This also helps avoid IO errors further down the
+line.
+
+```{r load-data, include=FALSE}
+library("readr")
+
+raw_data_dictionary <- read_csv("../data/data_dictionary.csv")
+raw_orders <- read_csv("../data/orders.csv")
+raw_order_details <- read_csv("../data/order_details.csv")
+raw_pizzas <- read_csv("../data/pizzas.csv")
+raw_pizza_types <- read_csv("../data/pizza_types.csv")
+```
+
+## Preview tables
+
+Here I'm just creating a few snippets that allow me to quickly preview each
+table for reference. I'm regularly going to forget the precise name of columns
+or want to manually verify outputs so these snippets often come in handy.
+
+```{r preview-raw-data_dictionary, include=TRUE}
+print(raw_data_dictionary)
+```
+
+```{r preview-raw-orders, include=TRUE}
+print(raw_orders)
+```
+
+```{r preview-raw-order_details, include=TRUE}
+print(raw_order_details)
+```
+
+```{r preview-raw-pizzas, include=TRUE}
+print(raw_pizzas)
+```
+
+```{r preview-raw-pizza_types, include=TRUE}
+print(raw_pizza_types)
+```
+
+## How many pizzas are made during peak periods?
+
+How do I go about answering this question? Well, I can work backwards from the
+output. I don't know the output values but I can represent it as a some other
+symbol, such as the letter `x`.
+
+I know from the first act's analysis what the peak periods are. About `12:30`
+and `18:00`. But a peak period is a span of time. We are going to have make
+another definition.
+
+Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order
+rate of between four and six orders per hour seems suitable. Any less and we're
+going to be including orders on the boundry between lunch and dinner. Any more
+and we are going to get a very small and almost certainly misleading result,
+at least for the dinner peaks.
+
+The level of permissiveness is possible going to have a big impact and I have
+no clue as to where within that range I should draw the line. Faced with
+uncertainty I should seek to acquire as much knowledge as possible with least
+amount of resources. This is done by exploring multiple options each to a
+fairly shallow depth. The aim is to narrow down to an appropriate order rate
+by eliminating options for valid reasons.
+
+So I'm going to perform the analysis multiple times with different rates
+and see what results I get back. To be precise we can try calculating the
+number of pizzas ordered at peak times for both lunch and dinner for the
+following orders per hour rates:
+
+- 4
+- 4.5
+- 5
+- 5.5
+- 6
+
+The great thing about doing this in a programming language like R, as opposed
+to Excel or Google Sheets, is that we can write a procedure (function in modern
+lingo) that accepts two inputs. The data or a subset of the data and a minimum
+peak rate. We can call the procedure with differing inputs and inspect the
+outputs. This is similar to how one might use a Monte Carlo approach except we
+are not using random inputs, relying on the law of large numbers, or have a
+particularly probabilistic scenario.
+
+...join orders and order_details tables...
