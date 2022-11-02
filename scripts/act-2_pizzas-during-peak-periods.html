@@ -378,12 +378,23 @@ display: none;
 unknown packages early so I don’t have to break focus on primary task to
 sort it out. It does take longer to get started but means we won’t be
 waiting for downloads and installs whilst we’re exploring.</p>
+<pre class="r"><code>install.packages(&quot;tidyverse&quot;)
+install.packages(&quot;lubridate&quot;)
+install.packages(&quot;hms&quot;)
+install.packages(&quot;ggplot2&quot;)</code></pre>
 </div>
 <div id="loading-the-data" class="section level2">
 <h2>Loading the data</h2>
 <p>There isn’t a lot of data in this dataset so I’m going to go ahead
 read in all files so they are ready. This also helps avoid IO errors
 further down the line.</p>
+<pre class="r"><code>library(&quot;readr&quot;)
+
+raw_data_dictionary &lt;- read_csv(&quot;../data/data_dictionary.csv&quot;)
+raw_orders &lt;- read_csv(&quot;../data/orders.csv&quot;)
+raw_order_details &lt;- read_csv(&quot;../data/order_details.csv&quot;)
+raw_pizzas &lt;- read_csv(&quot;../data/pizzas.csv&quot;)
+raw_pizza_types &lt;- read_csv(&quot;../data/pizza_types.csv&quot;)</code></pre>
 </div>
 <div id="preview-tables" class="section level2">
 <h2>Preview tables</h2>
@@ -498,6 +509,7 @@ and dinner for the following orders per hour rates:</p>
 <li>5</li>
 <li>5.5</li>
 <li>6</li>
+<li>6.5</li>
 </ul>
 <p>The great thing about doing this in a programming language like R, as
 opposed to Excel or Google Sheets, is that we can write a procedure
@@ -508,13 +520,17 @@ differing inputs and inspect the outputs with negligible extra cost
 use a Monte Carlo approach except we are not using random inputs,
 relying on the law of large numbers, or have a particularly
 probabilistic scenario.</p>
+</div>
+<div id="hourly-order-rates" class="section level2">
+<h2>Hourly order rates</h2>
 <p>To sum the number of pizzas made we will need to combine the
 <code>order</code> and <code>order_details</code> tables in some manner.
 <code>order</code> contains the time we need to filter on and
 <code>order_details</code> contains the individual pizza orders to
 sum.</p>
 <p>Typing out some pseudo SQL helps me figure out if where some of the
-challenges may lie:</p>
+challenges may lie. SQL is a personal pillar of strength from which I
+can navigate and learn equivalent operations in R:</p>
 <pre class="sql"><code>SELECT
   SUM(quantity) as pizzas_made
 FROM
@@ -522,30 +538,71 @@ FROM
 INNER JOIN
   order ON order_details.order_id == order.order_id 
 WHERE
-  order.time &gt; ??? AND order.time &lt; ???</code></pre>
-<p>The trick is not to feel the areas of resistance or difficulty to
-writing a query are. I’m all good until I hit the <code>WHERE</code>
+  order.time &gt; ???</code></pre>
+<blockquote>
+<p>I could have used a nested <code>SELECT</code> here instead of a
+<code>JOIN</code> but I personally try to avoid nesting as they can very
+quickly make a single query very complex.</p>
+</blockquote>
+<p>The trick is to feel the areas of resistance or difficulty while
+writing the query. I was all good until I hit the <code>WHERE</code>
 clause. Abstracting away from SQL this would be the filtering on peak
-time. So I fist need to recalculate the hourly order rates within R.
-Lets do that.</p>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lubridate&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     date, intersect, setdiff, union</code></pre>
-<pre><code>## 
-## Attaching package: &#39;hms&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:lubridate&#39;:
-## 
-##     hms</code></pre>
+time. So I fist need to recalculate the hourly order rates before
+updating the pseudo SQL query and finally converting it into R code.
+Lets do the hourly rates first.</p>
+<pre class="r"><code>library(&quot;dplyr&quot;)
+library(&quot;lubridate&quot;)
+library(&quot;hms&quot;)
+
+# I usually move small utility functions like this to the top of the file but
+# In this case I&#39;ll leave them where they are first used as it&#39;s easier to
+# see how things are calculated. In future Acts utility functions will be
+# created in a code block under the **Setup** heading. 
+round_down_to_hour &lt;- function(t) {
+  hr &lt;- hour(t)
+  s &lt;- strptime(hr, &quot;%H&quot;)
+  return (as_hms(s))
+}
+
+calc_days_open &lt;- function(orders) {
+  days_open &lt;- orders %&gt;%
+    distinct(date) %&gt;%
+    summarise(rows = n())
+  
+  return (days_open$rows)
+}
+
+calc_hourly_order_rates &lt;- function(orders) {
+  hourly_order_rates &lt;- orders %&gt;%
+    mutate(hour_in_day = round_down_to_hour(time)) %&gt;%
+    group_by(hour_in_day) %&gt;%
+    summarise(
+      order_rate = (n() / calc_days_open(orders)),
+    )
+  
+  return (hourly_order_rates)
+}
+
+hourly_order_rates = calc_hourly_order_rates(raw_orders)
+print(hourly_order_rates)</code></pre>
+<pre><code>## # A tibble: 15 × 2
+##    hour_in_day order_rate
+##    &lt;time&gt;           &lt;dbl&gt;
+##  1 09:00          0.00279
+##  2 10:00          0.0223 
+##  3 11:00          3.44   
+##  4 12:00          7.04   
+##  5 13:00          6.86   
+##  6 14:00          4.11   
+##  7 15:00          4.10   
+##  8 16:00          5.36   
+##  9 17:00          6.53   
+## 10 18:00          6.70   
+## 11 19:00          5.61   
+## 12 20:00          4.59   
+## 13 21:00          3.35   
+## 14 22:00          1.85   
+## 15 23:00          0.0782</code></pre>
 <p>Notice the heavy use of custom functions? In my opinion functions
 (procedures, routines, subroutines, etc) are the most important
 abstraction to learn as a programmer in any field. How to write a
@@ -559,16 +616,79 @@ adaptable code.</p>
 <p>Whilst studying for my Masters, young graduates would regularly
 request my programming experience to help them figure out why there C++
 or Java wasn’t working. Far too many students would show me a single
-file with a single <code>main</code> function containing 50, 100, or
-even 200+ lines of condensed code in it. The verbosity of these
-functions were the greatest impediment to the students debugging
-efforts. It’s not as though functions weren’t taught, it’s that they
-were introduced after most other basic constructs with little emphasis
-on how deadly powerful they are and how liberal use can make programming
-much easier and more enjoyable. By putting them first and encouraging
-students to isolate chunks of code from the get go I think we will
-improve the quality of the average code base by a significant
-amount.</p>
+file with a single <code>main</code> function containing 100 or 200+
+lines of condensed code in it. The verbosity of these functions were the
+greatest impediment to the students debugging efforts. It’s not as
+though functions weren’t taught, it’s that they were introduced after
+most other basic constructs with little emphasis on how deadly powerful
+they are and how liberal use can make programming much easier and more
+enjoyable. By putting them first and encouraging students to isolate
+chunks of code from the get go I think we will improve the quality of
+the average code base by a significant amount.</p>
+</div>
+<div id="peak-periods" class="section level2">
+<h2>Peak periods</h2>
+<p>Now I’ve cleared the hourly rate hurdle I have more clarity on how to
+proceed. I’ve modified the pseudo SQL with a new <code>WHERE</code>
+clause that finds the average hourly order rate for the order times and
+returns only those greater than or equal to the minimum rate we consider
+to be peak <code>min_peak_rate</code>.</p>
+<pre class="sql"><code>SELECT
+  SUM(quantity) as pizzas_made
+FROM
+  order_details
+INNER JOIN
+  order ON order_details.order_id == order.order_id 
+WHERE
+  avg_hourly_order_rate_for(order.time) &gt;= min_peak_rate</code></pre>
+<p>You will see I’ve used a function call
+<code>avg_hourly_order_rate_for</code> instead of a inline calculation
+for identifying the hourly order rate at the time of each order. This is
+because I don’t know how I will do that in R from the top of my mind. I
+do know what the input and outputs of the calculation are so I can use a
+function call as a placeholder.</p>
+<p>I don’t actually need to know how the function works in order to
+design an algorithm at this level. It’s only when I come to implement it
+will I have to worry about the specifics.</p>
+<p>So lets attempt an implementation:</p>
+<pre class="r"><code>pizza_orders &lt;- function(orders, order_details) {
+  x &lt;- orders %&gt;%
+    mutate(hour_in_day = round_down_to_hour(time)) %&gt;%
+    merge(order_details, by=c(&quot;order_id&quot;)) %&gt;%
+    merge(hourly_order_rates, by=c(&quot;hour_in_day&quot;)) %&gt;%
+    rename_at(&#39;order_rate&#39;, ~&#39;order_rate_at_hour&#39;)
+  
+  return (x)
+}
+
+pizzas_made_at_peak_time &lt;- function(orders, order_details, min_peak_order_rate) {
+  x &lt;- pizza_orders(orders, order_details) %&gt;%
+    filter(order_rate_at_hour &gt;= min_peak_order_rate) %&gt;%
+    summarise(
+      total_orders = n_distinct(order_id),
+      total_pizzas = sum(quantity),
+    )
+  
+  return (x)
+}
+
+is_pizza_lunch &lt;- function(t) {
+  return (format(t, &quot;%H:%m:%S&quot;) &lt;= &quot;14:30:00&quot;)
+}
+
+is_pizza_dinner &lt;- function(t) {
+  return (format(t, &quot;%H:%m:%S&quot;) &gt; &quot;14:30:00&quot;)
+}
+
+print(pizzas_made_at_peak_time(
+  raw_orders %&gt;%
+    filter(date == parse_date(&quot;2015-01-02&quot;)) %&gt;%
+    filter(is_pizza_dinner(time)),
+  raw_order_details,
+  6
+))</code></pre>
+<pre><code>##   total_orders total_pizzas
+## 1           17           46</code></pre>
 </div>
 </div>
 

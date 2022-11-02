@@ -17,16 +17,15 @@ output: html_document
 ```{r setup-global-options, include=FALSE}
 knitr::opts_chunk$set(
   echo=TRUE,
+  warning=FALSE,
+  message=FALSE,
   dev="svg"
 )
 ```
 
-I find installing all dependencies upfront helps identify broken or unknown
-packages early so I don't have to break focus on primary task to sort it out.
-It does take longer to get started but means we won't be waiting for
-downloads and installs whilst we're exploring.
+I find installing all dependencies upfront helps identify broken or unknown packages early so I don't have to break focus on primary task to sort it out. It does take longer to get started but means we won't be waiting for downloads and installs whilst we're exploring.
 
-```{r install-packages, include=FALSE}
+```{r install-packages, results='hide'}
 install.packages("tidyverse")
 install.packages("lubridate")
 install.packages("hms")
@@ -35,11 +34,9 @@ install.packages("ggplot2")
 
 ## Loading the data
 
-There isn't a lot of data in this dataset so I'm going to go ahead read in
-all files so they are ready. This also helps avoid IO errors further down the
-line.
+There isn't a lot of data in this dataset so I'm going to go ahead read in all files so they are ready. This also helps avoid IO errors further down the line.
 
-```{r load-data, include=FALSE}
+```{r load-data, results='hide'}
 library("readr")
 
 raw_data_dictionary <- read_csv("../data/data_dictionary.csv")
@@ -51,9 +48,7 @@ raw_pizza_types <- read_csv("../data/pizza_types.csv")
 
 ## Preview tables
 
-Here I'm just creating a few snippets that allow me to quickly preview each
-table for reference. I'm regularly going to forget the precise name of columns
-or want to manually verify outputs so these snippets often come in handy.
+Here I'm just creating a few snippets that allow me to quickly preview each table for reference. I'm regularly going to forget the precise name of columns or want to manually verify outputs so these snippets often come in handy.
 
 ```{r preview-raw_data_dictionary, echo=FALSE}
 print(raw_data_dictionary)
@@ -77,54 +72,30 @@ print(raw_pizza_types)
 
 ## How many pizzas are made during peak periods?
 
-How do I go about answering this question? Well, I can work backwards from the
-output. I don't know the output values but I can represent it as a some
-non-terminal symbol, such as `pizzas_made`.
+How do I go about answering this question? Well, I can work backwards from the output. I don't know the output values but I can represent it as a some non-terminal symbol, such as `pizzas_made`.
 
-I know from the first act's analysis what the peak periods are. About `12:30`
-and `18:00`. But a peak period is a span of time. We are going to have make
-another definition. I'm thinking of using the hourly order rate to determine
-the this.
+I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition. I'm thinking of using the hourly order rate to determine the this.
 
-Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order
-rate of between four and six orders per hour seems suitable. Any less and we're
-going to be including orders on the boundary between lunch and dinner. Any more
-and we are going to get a very small and almost certainly misleading result,
-at least for the dinner peak.
+Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order rate of between four and six orders per hour seems suitable. Any less and we're going to be including orders on the boundary between lunch and dinner. Any more and we are going to get a very small and almost certainly misleading result, at least for the dinner peak.
 
-The level of permissiveness is probably going to have a significant impact and
-I have no clue as to where within that range I should draw the line. Faced with
-uncertainty I should seek to acquire as much knowledge as possible with least
-amount of resources. This is done by exploring multiple options each to a
-fairly shallow depth. The aim is to narrow down to an appropriate order rate
-by eliminating options for valid reasons.
+The level of permissiveness is probably going to have a significant impact and I have no clue as to where within that range I should draw the line. Faced with uncertainty I should seek to acquire as much knowledge as possible with least amount of resources. This is done by exploring multiple options each to a fairly shallow depth. The aim is to narrow down to an appropriate order rate by eliminating options for valid reasons.
 
-So I'm going to perform the analysis multiple times with different rates
-and see what results I get back. To be precise we can try calculating the
-number of pizzas ordered at peak times for both lunch and dinner for the
-following orders per hour rates:
+So I'm going to perform the analysis multiple times with different rates and see what results I get back. To be precise we can try calculating the number of pizzas ordered at peak times for both lunch and dinner for the following orders per hour rates:
 
 - 4
 - 4.5
 - 5
 - 5.5
 - 6
+- 6.5
 
-The great thing about doing this in a programming language like R, as opposed
-to Excel or Google Sheets, is that we can write a procedure (function in modern
-lingo) that accepts two inputs. The data or a subset of the data and a minimum
-peak rate. We can call the procedure with differing inputs and inspect the
-outputs with negligible extra cost (barring time cost with big datasets). This
-is similar to how one might use a Monte Carlo approach except we are not using
-random inputs, relying on the law of large numbers, or have a particularly probabilistic scenario.
+The great thing about doing this in a programming language like R, as opposed to Excel or Google Sheets, is that we can write a procedure (function in modern lingo) that accepts two inputs. The data or a subset of the data and a minimum peak rate. We can call the procedure with differing inputs and inspect the outputs with negligible extra cost (barring time cost with big datasets). This is similar to how one might use a Monte Carlo approach except we are not using random inputs, relying on the law of large numbers, or have a particularly probabilistic scenario.
 
-To sum the number of pizzas made we will need to combine the `order` and
-`order_details` tables in some manner. `order` contains the time we need to
-filter on and `order_details` contains the individual pizza orders to sum.
+## Hourly order rates
 
-Typing out some pseudo SQL helps me figure out if where some of the challenges
-may lie. SQL is a personal pillar of strength from which I can navigate and
-learn equivalent operations in R:
+To sum the number of pizzas made we will need to combine the `order` and `order_details` tables in some manner. `order` contains the time we need to filter on and `order_details` contains the individual pizza orders to sum.
+
+Typing out some pseudo SQL helps me figure out if where some of the challenges may lie. SQL is a personal pillar of strength from which I can navigate and learn equivalent operations in R:
 
 ```SQL
 SELECT
@@ -134,16 +105,14 @@ FROM
 INNER JOIN
   order ON order_details.order_id == order.order_id 
 WHERE
-  order.time > ??? AND order.time < ???
+  order.time > ???
 ```
 
-The trick is to feel the areas of resistance or difficulty while writing the
-query. I was all good until I hit the `WHERE` clause. Abstracting
-away from SQL this would be the filtering on peak time. So I fist need to
-recalculate the hourly order rates before updating the pseudo SQL query and
-converting it into R code. Lets do the hourly rates.
+> I could have used a nested `SELECT` here instead of a `JOIN` but I personally try to avoid nesting as they can very quickly make a single query very complex.
 
-```{r calculate-hourly-order-rates, echo=FALSE}
+The trick is to feel the areas of resistance or difficulty while writing the query. I was all good until I hit the `WHERE` clause. Abstracting away from SQL this would be the filtering on peak time. So I fist need to recalculate the hourly order rates before updating the pseudo SQL query and finally converting it into R code. Lets do the hourly rates first.
+
+```{r calculate-hourly-order-rates}
 library("dplyr")
 library("lubridate")
 library("hms")
@@ -177,27 +146,72 @@ calc_hourly_order_rates <- function(orders) {
   return (hourly_order_rates)
 }
 
-raw_hourly_order_rates = calc_hourly_order_rates(raw_orders)
+hourly_order_rates = calc_hourly_order_rates(raw_orders)
+print(hourly_order_rates)
 ```
 
-Notice the heavy use of custom functions? In my opinion functions (procedures,
-routines, subroutines, etc) are the most important abstraction to learn as a
-programmer in any field. How to write a function and call it should be one of
-the first things taught in a programming course regardless of paradigm. Before
-branching, conditional, and looping constructs (`if`, `for`, etc). Actually,
-it should probably be taught before simple variable assignments and
-expressions. They are not just an immensely powerful abstraction but a way of
-crafting highly readable, debuggable, and adaptable code.
+Notice the heavy use of custom functions? In my opinion functions (procedures, routines, subroutines, etc) are the most important abstraction to learn as a programmer in any field. How to write a function and call it should be one of the first things taught in a programming course regardless of paradigm. Before branching, conditional, and looping constructs (`if`, `for`, etc). Actually, it should probably be taught before simple variable assignments and expressions. They are not just an immensely powerful abstraction but a way of crafting highly readable, debuggable, and adaptable code.
 
-Whilst studying for my Masters, young graduates would regularly request my
-programming experience to help them figure out why there C++ or Java
-wasn't working. Far too many students would show me a single file with a single
-`main` function containing 100 or 200+ lines of condensed code in it.
-The verbosity of these functions were the greatest impediment to the students
-debugging efforts. It's not as though functions weren't taught, it's that they
-were introduced after most other basic constructs with little emphasis on how
-deadly powerful they are and how liberal use can make programming much easier
-and more enjoyable. By putting them first and encouraging students to isolate
-chunks of code from the get go I think we will improve the quality of the
-average code base by a significant amount.
+Whilst studying for my Masters, young graduates would regularly request my programming experience to help them figure out why there C++ or Java wasn't working. Far too many students would show me a single file with a single `main` function containing 100 or 200+ lines of condensed code in it. The verbosity of these functions were the greatest impediment to the students debugging efforts. It's not as though functions weren't taught, it's that they were introduced after most other basic constructs with little emphasis on how deadly powerful they are and how liberal use can make programming much easier and more enjoyable. By putting them first and encouraging students to isolate chunks of code from the get go I think we will improve the quality of the average code base by a significant amount.
+
+## Peak periods
+
+Now I've cleared the hourly rate hurdle I have more clarity on how to proceed. I've modified the pseudo SQL with a new `WHERE` clause that finds the average hourly order rate for the order times and returns only those greater than or equal to the minimum rate we consider to be peak `min_peak_rate`.
+
+```SQL
+SELECT
+  SUM(quantity) as pizzas_made
+FROM
+  order_details
+INNER JOIN
+  order ON order_details.order_id == order.order_id 
+WHERE
+  avg_hourly_order_rate_for(order.time) >= min_peak_rate
+```
+
+You will see I've used a function call `avg_hourly_order_rate_for` instead of a inline calculation for identifying the hourly order rate at the time of each order. This is because I don't know how I will do that in R from the top of my mind. I do know what the input and outputs of the calculation are so I can use a function call as a placeholder.
+
+I don't actually need to know how the function works in order to design an algorithm at this level. It's only when I come to implement it will I have to worry about the specifics.
+
+So lets attempt an implementation:
+
+```{r peak-periods}
+
+pizza_orders <- function(orders, order_details) {
+  x <- orders %>%
+    mutate(hour_in_day = round_down_to_hour(time)) %>%
+    merge(order_details, by=c("order_id")) %>%
+    merge(hourly_order_rates, by=c("hour_in_day")) %>%
+    rename_at('order_rate', ~'order_rate_at_hour')
+  
+  return (x)
+}
+
+pizzas_made_at_peak_time <- function(orders, order_details, min_peak_order_rate) {
+  x <- pizza_orders(orders, order_details) %>%
+    filter(order_rate_at_hour >= min_peak_order_rate) %>%
+    summarise(
+      total_orders = n_distinct(order_id),
+      total_pizzas = sum(quantity),
+    )
+  
+  return (x)
+}
+
+is_pizza_lunch <- function(t) {
+  return (format(t, "%H:%m:%S") <= "14:30:00")
+}
+
+is_pizza_dinner <- function(t) {
+  return (format(t, "%H:%m:%S") > "14:30:00")
+}
+
+print(pizzas_made_at_peak_time(
+  raw_orders %>%
+    filter(date == parse_date("2015-01-02")) %>%
+    filter(is_pizza_dinner(time)),
+  raw_order_details,
+  6
+))
+```
 
