@@ -28,6 +28,8 @@ downloads and installs whilst we're exploring.
 
 ```{r install-packages, include=FALSE}
 install.packages("tidyverse")
+install.packages("lubridate")
+install.packages("hms")
 install.packages("ggplot2")
 ```
 
@@ -53,44 +55,45 @@ Here I'm just creating a few snippets that allow me to quickly preview each
 table for reference. I'm regularly going to forget the precise name of columns
 or want to manually verify outputs so these snippets often come in handy.
 
-```{r preview-raw-data_dictionary, include=TRUE}
+```{r preview-raw_data_dictionary, echo=FALSE}
 print(raw_data_dictionary)
 ```
 
-```{r preview-raw-orders, include=TRUE}
+```{r preview-raw_orders, echo=FALSE}
 print(raw_orders)
 ```
 
-```{r preview-raw-order_details, include=TRUE}
+```{r preview-raw_order_details, echo=FALSE}
 print(raw_order_details)
 ```
 
-```{r preview-raw-pizzas, include=TRUE}
+```{r preview-raw_pizzas, echo=FALSE}
 print(raw_pizzas)
 ```
 
-```{r preview-raw-pizza_types, include=TRUE}
+```{r preview-raw_pizza_types, echo=FALSE}
 print(raw_pizza_types)
 ```
 
 ## How many pizzas are made during peak periods?
 
 How do I go about answering this question? Well, I can work backwards from the
-output. I don't know the output values but I can represent it as a some other
-symbol, such as the letter `x`.
+output. I don't know the output values but I can represent it as a some
+non-terminal symbol, such as `pizzas_made`.
 
 I know from the first act's analysis what the peak periods are. About `12:30`
 and `18:00`. But a peak period is a span of time. We are going to have make
-another definition.
+another definition. I'm thinking of using the hourly order rate to determine
+the this.
 
 Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order
 rate of between four and six orders per hour seems suitable. Any less and we're
-going to be including orders on the boundry between lunch and dinner. Any more
+going to be including orders on the boundary between lunch and dinner. Any more
 and we are going to get a very small and almost certainly misleading result,
-at least for the dinner peaks.
+at least for the dinner peak.
 
-The level of permissiveness is possible going to have a big impact and I have
-no clue as to where within that range I should draw the line. Faced with
+The level of permissiveness is probably going to have a significant impact and
+I have no clue as to where within that range I should draw the line. Faced with
 uncertainty I should seek to acquire as much knowledge as possible with least
 amount of resources. This is done by exploring multiple options each to a
 fairly shallow depth. The aim is to narrow down to an appropriate order rate
@@ -111,8 +114,90 @@ The great thing about doing this in a programming language like R, as opposed
 to Excel or Google Sheets, is that we can write a procedure (function in modern
 lingo) that accepts two inputs. The data or a subset of the data and a minimum
 peak rate. We can call the procedure with differing inputs and inspect the
-outputs. This is similar to how one might use a Monte Carlo approach except we
-are not using random inputs, relying on the law of large numbers, or have a
-particularly probabilistic scenario.
+outputs with negligible extra cost (barring time cost with big datasets). This
+is similar to how one might use a Monte Carlo approach except we are not using
+random inputs, relying on the law of large numbers, or have a particularly probabilistic scenario.
 
-...join orders and order_details tables...
+To sum the number of pizzas made we will need to combine the `order` and
+`order_details` tables in some manner. `order` contains the time we need to
+filter on and `order_details` contains the individual pizza orders to sum.
+
+Typing out some pseudo SQL helps me figure out if where some of the challenges
+may lie. SQL is a personal pillar of strength from which I can navigate and
+learn equivalent operations in R:
+
+```SQL
+SELECT
+  SUM(quantity) as pizzas_made
+FROM
+  order_details
+INNER JOIN
+  order ON order_details.order_id == order.order_id 
+WHERE
+  order.time > ??? AND order.time < ???
+```
+
+The trick is to feel the areas of resistance or difficulty while writing the
+query. I was all good until I hit the `WHERE` clause. Abstracting
+away from SQL this would be the filtering on peak time. So I fist need to
+recalculate the hourly order rates before updating the pseudo SQL query and
+converting it into R code. Lets do the hourly rates.
+
+```{r calculate-hourly-order-rates, echo=FALSE}
+library("dplyr")
+library("lubridate")
+library("hms")
+
+# I usually move small utility functions like this to the top of the file but
+# In this case I'll leave them where they are first used as it's easier to
+# see how things are calculated. In future Acts utility functions will be
+# created in a code block under the **Setup** heading. 
+round_down_to_hour <- function(t) {
+  hr <- hour(t)
+  s <- strptime(hr, "%H")
+  return (as_hms(s))
+}
+
+calc_days_open <- function(orders) {
+  days_open <- orders %>%
+    distinct(date) %>%
+    summarise(rows = n())
+  
+  return (days_open$rows)
+}
+
+calc_hourly_order_rates <- function(orders) {
+  hourly_order_rates <- orders %>%
+    mutate(hour_in_day = round_down_to_hour(time)) %>%
+    group_by(hour_in_day) %>%
+    summarise(
+      order_rate = (n() / calc_days_open(orders)),
+    )
+  
+  return (hourly_order_rates)
+}
+
+raw_hourly_order_rates = calc_hourly_order_rates(raw_orders)
+```
+
+Notice the heavy use of custom functions? In my opinion functions (procedures,
+routines, subroutines, etc) are the most important abstraction to learn as a
+programmer in any field. How to write a function and call it should be one of
+the first things taught in a programming course regardless of paradigm. Before
+branching, conditional, and looping constructs (`if`, `for`, etc). Actually,
+it should probably be taught before simple variable assignments and
+expressions. They are not just an immensely powerful abstraction but a way of
+crafting highly readable, debuggable, and adaptable code.
+
+Whilst studying for my Masters, young graduates would regularly request my
+programming experience to help them figure out why there C++ or Java
+wasn't working. Far too many students would show me a single file with a single
+`main` function containing 100 or 200+ lines of condensed code in it.
+The verbosity of these functions were the greatest impediment to the students
+debugging efforts. It's not as though functions weren't taught, it's that they
+were introduced after most other basic constructs with little emphasis on how
+deadly powerful they are and how liberal use can make programming much easier
+and more enjoyable. By putting them first and encouraging students to isolate
+chunks of code from the get go I think we will improve the quality of the
+average code base by a significant amount.
+
