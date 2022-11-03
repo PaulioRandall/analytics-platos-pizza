@@ -11,7 +11,7 @@
 
 <meta name="author" content="Paul Williams" />
 
-<meta name="date" content="2022-11-02" />
+<meta name="date" content="2022-11-03" />
 
 <title>Plato’s Pizza: Act II</title>
 
@@ -358,7 +358,7 @@ display: none;
 
 <h1 class="title toc-ignore">Plato’s Pizza: Act II</h1>
 <h4 class="author">Paul Williams</h4>
-<h4 class="date">2022-11-02</h4>
+<h4 class="date">2022-11-03</h4>
 
 </div>
 
@@ -396,102 +396,26 @@ raw_order_details &lt;- read_csv(&quot;../data/order_details.csv&quot;)
 raw_pizzas &lt;- read_csv(&quot;../data/pizzas.csv&quot;)
 raw_pizza_types &lt;- read_csv(&quot;../data/pizza_types.csv&quot;)</code></pre>
 </div>
-<div id="preview-tables" class="section level2">
-<h2>Preview tables</h2>
-<p>Here I’m just creating a few snippets that allow me to quickly
-preview each table for reference. I’m regularly going to forget the
-precise name of columns or want to manually verify outputs so these
-snippets often come in handy.</p>
-<pre><code>## # A tibble: 15 × 3
-##    Table         Field            Description                                   
-##    &lt;chr&gt;         &lt;chr&gt;            &lt;chr&gt;                                         
-##  1 orders        order_id         Unique identifier for each order placed by a …
-##  2 orders        date             Date the order was placed (entered into the s…
-##  3 orders        time             Time the order was placed (entered into the s…
-##  4 order_details order_details_id Unique identifier for each pizza placed withi…
-##  5 order_details order_id         Foreign key that ties the details in each ord…
-##  6 order_details pizza_id         Foreign key that ties the pizza ordered to it…
-##  7 order_details quantity         Quantity ordered for each pizza of the same t…
-##  8 pizzas        pizza_id         Unique identifier for each pizza (constituted…
-##  9 pizzas        pizza_type_id    Foreign key that ties each pizza to its broad…
-## 10 pizzas        size             Size of the pizza (Small, Medium, Large, X La…
-## 11 pizzas        price            Price of the pizza in USD                     
-## 12 pizza_types   pizza_type_id    Unique identifier for each pizza type         
-## 13 pizza_types   name             Name of the pizza as shown in the menu        
-## 14 pizza_types   category         Category that the pizza fall under in the men…
-## 15 pizza_types   ingredients      Comma-delimited ingredients used in the pizza…</code></pre>
-<pre><code>## # A tibble: 21,350 × 3
-##    order_id date       time    
-##       &lt;dbl&gt; &lt;date&gt;     &lt;time&gt;  
-##  1        1 2015-01-01 11:38:36
-##  2        2 2015-01-01 11:57:40
-##  3        3 2015-01-01 12:12:28
-##  4        4 2015-01-01 12:16:31
-##  5        5 2015-01-01 12:21:30
-##  6        6 2015-01-01 12:29:36
-##  7        7 2015-01-01 12:50:37
-##  8        8 2015-01-01 12:51:37
-##  9        9 2015-01-01 12:52:01
-## 10       10 2015-01-01 13:00:15
-## # … with 21,340 more rows</code></pre>
-<pre><code>## # A tibble: 48,620 × 4
-##    order_details_id order_id pizza_id      quantity
-##               &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;
-##  1                1        1 hawaiian_m           1
-##  2                2        2 classic_dlx_m        1
-##  3                3        2 five_cheese_l        1
-##  4                4        2 ital_supr_l          1
-##  5                5        2 mexicana_m           1
-##  6                6        2 thai_ckn_l           1
-##  7                7        3 ital_supr_m          1
-##  8                8        3 prsc_argla_l         1
-##  9                9        4 ital_supr_m          1
-## 10               10        5 ital_supr_m          1
-## # … with 48,610 more rows</code></pre>
-<pre><code>## # A tibble: 96 × 4
-##    pizza_id      pizza_type_id size  price
-##    &lt;chr&gt;         &lt;chr&gt;         &lt;chr&gt; &lt;dbl&gt;
-##  1 bbq_ckn_s     bbq_ckn       S      12.8
-##  2 bbq_ckn_m     bbq_ckn       M      16.8
-##  3 bbq_ckn_l     bbq_ckn       L      20.8
-##  4 cali_ckn_s    cali_ckn      S      12.8
-##  5 cali_ckn_m    cali_ckn      M      16.8
-##  6 cali_ckn_l    cali_ckn      L      20.8
-##  7 ckn_alfredo_s ckn_alfredo   S      12.8
-##  8 ckn_alfredo_m ckn_alfredo   M      16.8
-##  9 ckn_alfredo_l ckn_alfredo   L      20.8
-## 10 ckn_pesto_s   ckn_pesto     S      12.8
-## # … with 86 more rows</code></pre>
-<pre><code>## # A tibble: 32 × 4
-##    pizza_type_id name                         category ingredients              
-##    &lt;chr&gt;         &lt;chr&gt;                        &lt;chr&gt;    &lt;chr&gt;                    
-##  1 bbq_ckn       The Barbecue Chicken Pizza   Chicken  Barbecued Chicken, Red P…
-##  2 cali_ckn      The California Chicken Pizza Chicken  Chicken, Artichoke, Spin…
-##  3 ckn_alfredo   The Chicken Alfredo Pizza    Chicken  Chicken, Red Onions, Red…
-##  4 ckn_pesto     The Chicken Pesto Pizza      Chicken  Chicken, Tomatoes, Red P…
-##  5 southw_ckn    The Southwest Chicken Pizza  Chicken  Chicken, Tomatoes, Red P…
-##  6 thai_ckn      The Thai Chicken Pizza       Chicken  Chicken, Pineapple, Toma…
-##  7 big_meat      The Big Meat Pizza           Classic  Bacon, Pepperoni, Italia…
-##  8 classic_dlx   The Classic Deluxe Pizza     Classic  Pepperoni, Mushrooms, Re…
-##  9 hawaiian      The Hawaiian Pizza           Classic  Sliced Ham, Pineapple, M…
-## 10 ital_cpcllo   The Italian Capocollo Pizza  Classic  Capocollo, Red Peppers, …
-## # … with 22 more rows</code></pre>
-</div>
-<div id="how-many-pizzas-are-made-during-peak-periods" class="section level2">
-<h2>How many pizzas are made during peak periods?</h2>
-<p>How do I go about answering this question? Well, I can work backwards
-from the output. I don’t know the output values but I can represent it
-as a some non-terminal symbol, such as <code>pizzas_made</code>.</p>
+<div id="where-to-start" class="section level2">
+<h2>Where to start?</h2>
+<p>How do I go about answering the question <em>‘How many pizzas are
+made during peak periods?’</em>? Well, I can work backwards from the
+output. I don’t know the output values but I can represent it as a some
+non-terminal symbol, such as <code>pizzas_made</code>.</p>
 <p>I know from the first act’s analysis what the peak periods are. About
 <code>12:30</code> and <code>18:00</code>. But a peak period is a span
 of time. We are going to have make another definition. I’m thinking of
-using the hourly order rate to determine the this.</p>
+using the hourly order rate to determine this, that is, I’m going to
+calculate the average number of orders for each hour in the average day
+for 2015 and filter those that are equal to or above a predetermined
+order rate.</p>
 <p>Looking back at the line graph in <em>Act I Scene 2: Visualise the
 day</em>, an order rate of between four and six orders per hour seems
-suitable. Any less and we’re going to be including orders on the
-boundary between lunch and dinner. Any more and we are going to get a
+suitable. Any lower and we’re going to be including orders on the
+boundary between lunch and dinner. Any higher and we are going to get a
 very small and almost certainly misleading result, at least for the
-dinner peak.</p>
+dinner peak. I could use different rates for lunch and dinner but I feel
+it is unnecessary in the scenario, at least at the moment.</p>
 <p>The level of permissiveness is probably going to have a significant
 impact and I have no clue as to where within that range I should draw
 the line. Faced with uncertainty I should seek to acquire as much
@@ -500,9 +424,9 @@ exploring multiple options each to a fairly shallow depth. The aim is to
 narrow down to an appropriate order rate by eliminating options for
 valid reasons.</p>
 <p>So I’m going to perform the analysis multiple times with different
-rates and see what results I get back. To be precise we can try
+rates and see what results I get back. To be precise, we can try
 calculating the number of pizzas ordered at peak times for both lunch
-and dinner for the following orders per hour rates:</p>
+and dinner for the following minimum hourly order rates:</p>
 <ul>
 <li>4</li>
 <li>4.5</li>
@@ -513,13 +437,10 @@ and dinner for the following orders per hour rates:</p>
 </ul>
 <p>The great thing about doing this in a programming language like R, as
 opposed to Excel or Google Sheets, is that we can write a procedure
-(function in modern lingo) that accepts two inputs. The data or a subset
-of the data and a minimum peak rate. We can call the procedure with
-differing inputs and inspect the outputs with negligible extra cost
-(barring time cost with big datasets). This is similar to how one might
-use a Monte Carlo approach except we are not using random inputs,
-relying on the law of large numbers, or have a particularly
-probabilistic scenario.</p>
+(function in modern lingo) that accepts at least two inputs; the data or
+a subset of the data and a minimum peak rate. We can call the procedure
+with differing inputs and inspect the outputs with negligible extra cost
+(barring time cost with big datasets).</p>
 </div>
 <div id="hourly-order-rates" class="section level2">
 <h2>Hourly order rates</h2>
@@ -583,8 +504,7 @@ calc_hourly_order_rates &lt;- function(orders) {
   return (hourly_order_rates)
 }
 
-hourly_order_rates = calc_hourly_order_rates(raw_orders)
-print(hourly_order_rates)</code></pre>
+print(calc_hourly_order_rates(raw_orders))</code></pre>
 <pre><code>## # A tibble: 15 × 2
 ##    hour_in_day order_rate
 ##    &lt;time&gt;           &lt;dbl&gt;
@@ -626,8 +546,8 @@ enjoyable. By putting them first and encouraging students to isolate
 chunks of code from the get go I think we will improve the quality of
 the average code base by a significant amount.</p>
 </div>
-<div id="peak-periods" class="section level2">
-<h2>Peak periods</h2>
+<div id="pizzas-made" class="section level2">
+<h2>Pizzas made</h2>
 <p>Now I’ve cleared the hourly rate hurdle I have more clarity on how to
 proceed. I’ve modified the pseudo SQL with a new <code>WHERE</code>
 clause that finds the average hourly order rate for the order times and
@@ -650,8 +570,9 @@ function call as a placeholder.</p>
 <p>I don’t actually need to know how the function works in order to
 design an algorithm at this level. It’s only when I come to implement it
 will I have to worry about the specifics.</p>
-<p>So lets attempt an implementation:</p>
-<pre class="r"><code>pizza_orders &lt;- function(orders, order_details) {
+<p>So lets attempt to implement some functions to calculate pizzas made
+at peak times:</p>
+<pre class="r"><code>compose_pizza_orders &lt;- function(hourly_order_rates, orders, order_details) {
   x &lt;- orders %&gt;%
     mutate(hour_in_day = round_down_to_hour(time)) %&gt;%
     merge(order_details, by=c(&quot;order_id&quot;)) %&gt;%
@@ -661,34 +582,72 @@ will I have to worry about the specifics.</p>
   return (x)
 }
 
-pizzas_made_at_peak_time &lt;- function(orders, order_details, min_peak_order_rate) {
-  x &lt;- pizza_orders(orders, order_details) %&gt;%
+pizzas_made_at_peak_time &lt;- function(min_peak_order_rate, pizza_orders) {
+  x &lt;- pizza_orders %&gt;%
     filter(order_rate_at_hour &gt;= min_peak_order_rate) %&gt;%
     summarise(
+      min_peak_order_rate = min_peak_order_rate,
       total_orders = n_distinct(order_id),
       total_pizzas = sum(quantity),
     )
   
   return (x)
-}
-
-is_pizza_lunch &lt;- function(t) {
+}</code></pre>
+<p>We can now compose a function calling the
+<code>pizzas_made_at_peak_time</code> function with various values for
+<code>min_peak_order_rate</code>:</p>
+<pre class="r"><code>is_lunch_time &lt;- function(t) {
   return (format(t, &quot;%H:%m:%S&quot;) &lt;= &quot;14:30:00&quot;)
 }
 
-is_pizza_dinner &lt;- function(t) {
+is_dinner_time &lt;- function(t) {
   return (format(t, &quot;%H:%m:%S&quot;) &gt; &quot;14:30:00&quot;)
 }
 
-print(pizzas_made_at_peak_time(
-  raw_orders %&gt;%
-    filter(date == parse_date(&quot;2015-01-02&quot;)) %&gt;%
-    filter(is_pizza_dinner(time)),
+append_result &lt;- function(acc, res) {
+  if (is.null(acc)) {
+    return (res)
+  }
+  return (union(acc, res))
+}
+
+calc_pizzas_made_for_each_order_rate &lt;- function(
+    hourly_order_rates,
+    orders,
+    order_details,
+    min_peak_order_rates
+) {
+  pizza_orders_for_whole_year &lt;- compose_pizza_orders(
+    hourly_order_rates,
+    raw_orders,
+    raw_order_details
+  )
+  
+  pizzas_made &lt;- NULL
+  for (i in min_peak_order_rates) {
+    res &lt;- pizzas_made_at_peak_time(i, pizza_orders_for_whole_year)
+    pizzas_made &lt;- append_result(pizzas_made, res)
+  }
+  
+  return (pizzas_made)
+}</code></pre>
+<p>Finally, we can call
+<code>calc_pizzas_made_for_each_order_rate</code> with our desired
+parameters:</p>
+<pre class="r"><code>print(calc_pizzas_made_for_each_order_rate(
+  calc_hourly_order_rates(raw_orders),
+  raw_orders,
   raw_order_details,
-  6
+  c(0, 4, 4.5, 5, 5.5, 6, 6.5)
 ))</code></pre>
-<pre><code>##   total_orders total_pizzas
-## 1           17           46</code></pre>
+<pre><code>##   min_peak_order_rate total_orders total_pizzas
+## 1                 0.0        21350        49574
+## 2                 4.0        18221        42825
+## 3                 4.5        15281        35996
+## 4                 5.0        13639        32462
+## 5                 5.5        11719        28223
+## 6                 6.0         9710        23817
+## 7                 6.5         9710        23817</code></pre>
 </div>
 </div>
 

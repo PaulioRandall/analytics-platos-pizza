@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-# Plato's Pizza
+# Plato's Pizza: Act II
 
 ## R chunk options
 
@@ -32,7 +32,7 @@ install.packages("hms")
 install.packages("ggplot2")
 ```
 
-## Loading the data
+## The read
 
 There isn't a lot of data in this dataset so I'm going to go ahead read in all files so they are ready. This also helps avoid IO errors further down the line.
 
@@ -46,41 +46,17 @@ raw_pizzas <- read_csv("../data/pizzas.csv")
 raw_pizza_types <- read_csv("../data/pizza_types.csv")
 ```
 
-## Preview tables
+## Where to start?
 
-Here I'm just creating a few snippets that allow me to quickly preview each table for reference. I'm regularly going to forget the precise name of columns or want to manually verify outputs so these snippets often come in handy.
+How do I go about answering the question _'How many pizzas are made during peak periods?'_? Well, I can work backwards from the output. I don't know the output values but I can represent it as a some non-terminal symbol, such as `pizzas_made`.
 
-```{r preview-raw_data_dictionary, echo=FALSE}
-print(raw_data_dictionary)
-```
+I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition. I'm thinking of using the hourly order rate to determine this, that is, I'm going to calculate the average number of orders for each hour in the average day for 2015 and filter those that are equal to or above a predetermined order rate.
 
-```{r preview-raw_orders, echo=FALSE}
-print(raw_orders)
-```
-
-```{r preview-raw_order_details, echo=FALSE}
-print(raw_order_details)
-```
-
-```{r preview-raw_pizzas, echo=FALSE}
-print(raw_pizzas)
-```
-
-```{r preview-raw_pizza_types, echo=FALSE}
-print(raw_pizza_types)
-```
-
-## How many pizzas are made during peak periods?
-
-How do I go about answering this question? Well, I can work backwards from the output. I don't know the output values but I can represent it as a some non-terminal symbol, such as `pizzas_made`.
-
-I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition. I'm thinking of using the hourly order rate to determine the this.
-
-Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order rate of between four and six orders per hour seems suitable. Any less and we're going to be including orders on the boundary between lunch and dinner. Any more and we are going to get a very small and almost certainly misleading result, at least for the dinner peak.
+Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order rate of between four and six orders per hour seems suitable. Any lower and we're going to be including orders on the boundary between lunch and dinner. Any higher and we are going to get a very small and almost certainly misleading result, at least for the dinner peak. I could use different rates for lunch and dinner but I feel it is unnecessary in the scenario, at least at the moment.
 
 The level of permissiveness is probably going to have a significant impact and I have no clue as to where within that range I should draw the line. Faced with uncertainty I should seek to acquire as much knowledge as possible with least amount of resources. This is done by exploring multiple options each to a fairly shallow depth. The aim is to narrow down to an appropriate order rate by eliminating options for valid reasons.
 
-So I'm going to perform the analysis multiple times with different rates and see what results I get back. To be precise we can try calculating the number of pizzas ordered at peak times for both lunch and dinner for the following orders per hour rates:
+So I'm going to perform the analysis multiple times with different rates and see what results I get back. To be precise, we can try calculating the number of pizzas ordered at peak times for both lunch and dinner for the following minimum hourly order rates:
 
 - 4
 - 4.5
@@ -89,9 +65,9 @@ So I'm going to perform the analysis multiple times with different rates and see
 - 6
 - 6.5
 
-The great thing about doing this in a programming language like R, as opposed to Excel or Google Sheets, is that we can write a procedure (function in modern lingo) that accepts two inputs. The data or a subset of the data and a minimum peak rate. We can call the procedure with differing inputs and inspect the outputs with negligible extra cost (barring time cost with big datasets). This is similar to how one might use a Monte Carlo approach except we are not using random inputs, relying on the law of large numbers, or have a particularly probabilistic scenario.
+The great thing about doing this in a programming language like R, as opposed to Excel or Google Sheets, is that we can write a procedure (function in modern lingo) that accepts at least two inputs; the data or a subset of the data and a minimum peak rate. We can call the procedure with differing inputs and inspect the outputs with negligible extra cost (barring time cost with big datasets).
 
-## Hourly order rates
+## Rates of orders
 
 To sum the number of pizzas made we will need to combine the `order` and `order_details` tables in some manner. `order` contains the time we need to filter on and `order_details` contains the individual pizza orders to sum.
 
@@ -146,15 +122,14 @@ calc_hourly_order_rates <- function(orders) {
   return (hourly_order_rates)
 }
 
-hourly_order_rates = calc_hourly_order_rates(raw_orders)
-print(hourly_order_rates)
+print(calc_hourly_order_rates(raw_orders))
 ```
 
 Notice the heavy use of custom functions? In my opinion functions (procedures, routines, subroutines, etc) are the most important abstraction to learn as a programmer in any field. How to write a function and call it should be one of the first things taught in a programming course regardless of paradigm. Before branching, conditional, and looping constructs (`if`, `for`, etc). Actually, it should probably be taught before simple variable assignments and expressions. They are not just an immensely powerful abstraction but a way of crafting highly readable, debuggable, and adaptable code.
 
 Whilst studying for my Masters, young graduates would regularly request my programming experience to help them figure out why there C++ or Java wasn't working. Far too many students would show me a single file with a single `main` function containing 100 or 200+ lines of condensed code in it. The verbosity of these functions were the greatest impediment to the students debugging efforts. It's not as though functions weren't taught, it's that they were introduced after most other basic constructs with little emphasis on how deadly powerful they are and how liberal use can make programming much easier and more enjoyable. By putting them first and encouraging students to isolate chunks of code from the get go I think we will improve the quality of the average code base by a significant amount.
 
-## Peak periods
+## Peak pizzas
 
 Now I've cleared the hourly rate hurdle I have more clarity on how to proceed. I've modified the pseudo SQL with a new `WHERE` clause that finds the average hourly order rate for the order times and returns only those greater than or equal to the minimum rate we consider to be peak `min_peak_rate`.
 
@@ -173,11 +148,11 @@ You will see I've used a function call `avg_hourly_order_rate_for` instead of a 
 
 I don't actually need to know how the function works in order to design an algorithm at this level. It's only when I come to implement it will I have to worry about the specifics.
 
-So lets attempt an implementation:
+So lets attempt to implement some functions to calculate pizzas made at peak times:
 
-```{r peak-periods}
+```{r pizzas-orders}
 
-pizza_orders <- function(orders, order_details) {
+compose_pizza_orders <- function(hourly_order_rates, orders, order_details) {
   x <- orders %>%
     mutate(hour_in_day = round_down_to_hour(time)) %>%
     merge(order_details, by=c("order_id")) %>%
@@ -187,31 +162,104 @@ pizza_orders <- function(orders, order_details) {
   return (x)
 }
 
-pizzas_made_at_peak_time <- function(orders, order_details, min_peak_order_rate) {
-  x <- pizza_orders(orders, order_details) %>%
+pizzas_made_at_peak_time <- function(min_peak_order_rate, pizza_orders) {
+  x <- pizza_orders %>%
     filter(order_rate_at_hour >= min_peak_order_rate) %>%
     summarise(
+      min_peak_order_rate = min_peak_order_rate,
       total_orders = n_distinct(order_id),
       total_pizzas = sum(quantity),
     )
   
   return (x)
 }
+```
 
-is_pizza_lunch <- function(t) {
+We can now compose a function calling the `pizzas_made_at_peak_time` function with various values for `min_peak_order_rate`:
+
+```{r calc_pizzas_made}
+
+is_lunch_time <- function(t) {
   return (format(t, "%H:%m:%S") <= "14:30:00")
 }
 
-is_pizza_dinner <- function(t) {
+is_dinner_time <- function(t) {
   return (format(t, "%H:%m:%S") > "14:30:00")
 }
 
-print(pizzas_made_at_peak_time(
-  raw_orders %>%
-    filter(date == parse_date("2015-01-02")) %>%
-    filter(is_pizza_dinner(time)),
-  raw_order_details,
-  6
-))
+append_result <- function(acc, res) {
+  if (is.null(acc)) {
+    return (res)
+  }
+  return (union(acc, res))
+}
+
+calc_pizzas_made_for_each_order_rate <- function(
+    hourly_order_rates,
+    orders,
+    order_details,
+    min_peak_order_rates
+) {
+  pizza_orders_for_whole_year <- compose_pizza_orders(
+    hourly_order_rates,
+    raw_orders,
+    raw_order_details
+  )
+  
+  pizzas_made <- NULL
+  for (i in min_peak_order_rates) {
+    res <- pizzas_made_at_peak_time(i, pizza_orders_for_whole_year)
+    pizzas_made <- append_result(pizzas_made, res)
+  }
+  
+  return (pizzas_made)
+}
 ```
 
+Finally, we can call `calc_pizzas_made_for_each_order_rate` with our desired parameters:
+
+```{r pizzas_made}
+pizzas_made_at_peak_times <- calc_pizzas_made_for_each_order_rate(
+  calc_hourly_order_rates(raw_orders),
+  raw_orders,
+  raw_order_details,
+  c(0, 4, 4.5, 5, 5.5, 6, 6.5)
+)
+
+print(pizzas_made_at_peak_times)
+```
+
+## Peak Pizza Plot
+
+OK, lets plot this for a clearer view:
+
+```{r plot_peak_pizzas}
+library('ggplot2')
+
+pizzas_made_at_peak_times %>%
+  mutate(labels = as.character(min_peak_order_rate)) %>%
+  ggplot() +
+    geom_col(aes(x=labels, y=total_pizzas)) +
+    theme_bw() +
+    theme(
+      legend.position="none",
+      plot.title = element_text(hjust = 0.5),
+      plot.subtitle = element_text(hjust = 0.5),
+      plot.caption = element_text(hjust = 0.5),
+      axis.text.x = element_text(hjust = 0.5),
+    ) +
+    labs(
+      title="How many pizzas are made during peak periods?",
+      subtitle="Depends on what you define as peek time",
+      x="Potential minimum order rates used to define peak time",
+      y="Total pizzas made",
+    )
+
+ggsave("~/github/analytics-maven-pizza-challenge/plots/pizzas-made-at-peak-times.png")
+```
+
+## So how many pizzas are made during peak periods then?
+
+Well, if we define peak time as when the order rate is 5 or above for the average day in the dataset then the number of pizzas made at peak time is 32,462. If we choose 4 instead the number of pizzas made at peak time would be 42,825 instead.
+
+I've added the 0 option to the graph which represents the total number of pizzas made. This allows us to gauge how many pizzas are made at peak time relative to the total number of pizzas made. Even by the strictest definition of peak time, i.e. order rate of 6.5, about 50% of the pizzas are made at peak time.
