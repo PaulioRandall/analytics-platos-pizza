@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-I find installing all dependencies upfront helps identify broken or unknown packages early so I don't have to break focus on primary task to sort it out. It does take longer to get started but means we won't be waiting for downloads and installs whilst we're exploring.
+Install packages:
 
 ```{r install-packages, results='hide'}
 install.packages("tidyverse")
@@ -35,17 +35,19 @@ install.packages("svglite") # apt: libfontconfig1-dev
 
 ## The read
 
-There isn't a lot of data in this dataset so I'm going to go ahead read in all files so they are ready. This also helps avoid IO errors further down the line.
-
 ```{r load-data, results='hide'}
 library("readr")
 
 raw_data_dictionary <- read_csv("../data/data_dictionary.csv")
-raw_orders <- read_csv("../data/orders.csv")
-raw_order_details <- read_csv("../data/order_details.csv")
-raw_pizzas <- read_csv("../data/pizzas.csv")
-raw_pizza_types <- read_csv("../data/pizza_types.csv")
+raw_orders          <- read_csv("../data/orders.csv")
+raw_order_details   <- read_csv("../data/order_details.csv")
+raw_pizzas          <- read_csv("../data/pizzas.csv")
+raw_pizza_types     <- read_csv("../data/pizza_types.csv")
 ```
+
+## What do mean by 'peak periods'?
+
+See Act II write up.
 
 ## Where to start?
 
