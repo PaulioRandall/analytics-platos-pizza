@@ -30,6 +30,7 @@ install.packages("tidyverse")
 install.packages("lubridate")
 install.packages("hms")
 install.packages("ggplot2")
+install.packages("svglite") # apt: libfontconfig1-dev
 ```
 
 ## The read
@@ -50,7 +51,11 @@ raw_pizza_types <- read_csv("../data/pizza_types.csv")
 
 How do I go about answering the question _'How many pizzas are made during peak periods?'_? Well, I can work backwards from the output. I don't know the output values but I can represent it as a some non-terminal symbol, such as `pizzas_made`.
 
-I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition. I'm thinking of using the hourly order rate to determine this, that is, I'm going to calculate the average number of orders for each hour in the average day for 2015 and filter those that are equal to or above a predetermined order rate.
+I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition.
+
+## Using hourly rate of the average day to define peak time
+
+I'm thinking of using the hourly order rate to determine this, that is, I'm going to calculate the average number of orders for each hour in the average day for 2015 and filter those that are equal to or above a predetermined order rate.
 
 Looking back at the line graph in _Act I Scene 2: Visualise the day_, an order rate of between four and six orders per hour seems suitable. Any lower and we're going to be including orders on the boundary between lunch and dinner. Any higher and we are going to get a very small and almost certainly misleading result, at least for the dinner peak. I could use different rates for lunch and dinner but I feel it is unnecessary in the scenario, at least at the moment.
 
@@ -235,6 +240,7 @@ OK, lets plot this for a clearer view:
 
 ```{r plot_peak_pizzas}
 library('ggplot2')
+library('svglite')
 
 pizzas_made_at_peak_times %>%
   mutate(labels = as.character(min_peak_order_rate)) %>%
@@ -255,7 +261,7 @@ pizzas_made_at_peak_times %>%
       y="Total pizzas made",
     )
 
-ggsave("~/github/analytics-maven-pizza-challenge/plots/pizzas-made-at-peak-times.png")
+ggsave("~/github/analytics-maven-pizza-challenge/plots/pizzas-made-at-peak-times.svg")
 ```
 
 ## So how many pizzas are made during peak periods then?
