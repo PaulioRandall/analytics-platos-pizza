@@ -23,9 +23,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-Install packages:
+## The packages
 
-```{r install-packages, results='hide'}
+Note that this code chunk must be run manually and will not be executed when knitting. This allows you to determine how and when dependencies are installed.
+
+```{r the-packages, eval=FALSE, include=FALSE}
 install.packages("tidyverse")
 install.packages("lubridate")
 install.packages("hms")
@@ -35,27 +37,289 @@ install.packages("svglite") # apt: libfontconfig1-dev
 
 ## The read
 
-```{r load-data, results='hide'}
+```{r the-read, results='hide'}
 library("readr")
 
-raw_data_dictionary <- read_csv("../data/data_dictionary.csv")
-raw_orders          <- read_csv("../data/orders.csv")
-raw_order_details   <- read_csv("../data/order_details.csv")
-raw_pizzas          <- read_csv("../data/pizzas.csv")
-raw_pizza_types     <- read_csv("../data/pizza_types.csv")
+data_dictionary <- read_csv("../../data/data_dictionary.csv")
+orders          <- read_csv("../../data/orders.csv")
+order_details   <- read_csv("../../data/order_details.csv")
+pizzas          <- read_csv("../../data/pizzas.csv")
+pizza_types     <- read_csv("../../data/pizza_types.csv")
 ```
 
-## What do mean by 'peak periods'?
+## Hand picked peak periods (Option 1)
 
-See Act II write up.
+```sql
+SELECT
+	SUM(details.quantity) as pizzas_made
+FROM
+	order_details AS details
+INNER JOIN
+	orders ON details.order_id = orders.order_id
+WHERE
+	-- Lunch
+	(orders.time >= '11:15:00' AND orders.time <= '13:45:00')
+OR
+	-- Dinner
+	(orders.time >= '15:45:00' AND orders.time <= '19:30:00')
+```
 
-## Where to start?
+```{r hand-picked-peak-periods}
+library("dplyr")
 
-How do I go about answering the question _'How many pizzas are made during peak periods?'_? Well, I can work backwards from the output. I don't know the output values but I can represent it as a some non-terminal symbol, such as `pizzas_made`.
+pizzas_made_at_peak_times <- function(
+	peak_lunch_start,
+	peak_lunch_end,
+	peak_dinner_start,
+	peak_dinner_end
+) {
 
-I know from the first act's analysis what the peak periods are. About `12:30` and `18:00`. But a peak period is a span of time. We are going to have make another definition.
+	# FROM order_details
+	x <- order_details %>%
 
-## Using hourly rate of the average day to define peak time
+		# INNER JOIN orders ON order_details.order_id = orders.order_id
+		merge(orders, by=c("order_id")) %>%
+
+		# WHERE (orders.time >= '11:15:00' AND orders.time <= '13:45:00')
+		# OR (orders.time >= '15:45:00' AND orders.time <= '19:30:00')
+		mutate(time_str = format(time, "%H:%m:%S")) %>%
+		filter(
+			(time_str >= peak_lunch_start & time_str <= peak_lunch_end) |
+			(time_str >= peak_dinner_start & time_str <= peak_dinner_end)
+		) %>%
+
+		# SELECT SUM(details.quantity) as pizzas_made
+		summarise(
+			peak_lunch_start,
+			peak_lunch_end,
+			peak_dinner_start,
+			peak_dinner_end,
+			total_orders = n_distinct(order_id),
+			pizzas_made = sum(quantity)
+		)
+
+	return (x)
+}
+```
+
+## A sneak peak
+
+```{r a-sneak-peak}
+print(pizzas_made_at_peak_times(
+	# Lunch
+	'11:15:00', '13:45:00',
+	# Dinner
+	'15:45:00', '19:30:00'
+))
+
+# Example output: 12345
+```
+
+## Piping hot
+
+```{r piping-hot-1}
+append_result <- function(acc, res) {
+	if (is.null(acc)) {
+		return (res)
+	}
+	return (union(acc, res))
+}
+
+pizzas_made_at_peak_times_cols <- function(
+	peak_lunch_start,
+	peak_lunch_end,
+	peak_dinner_start,
+	peak_dinner_end
+) {
+	x <- NULL
+
+	for (i in 1:length(peak_lunch_start)) {
+		res <- pizzas_made_at_peak_times(
+			peak_lunch_start[i],
+			peak_lunch_end[i],
+			peak_dinner_start[i],
+			peak_dinner_end[i]
+		)
+
+		x <- append_result(x, res)
+	}
+
+	return (x)
+}
+```
+
+```{r piping-hot-2}
+library("tidyr")
+
+pizzas_made_for_various_peak_times <- function(peak_times) {
+  x <- peak_times %>%
+    mutate(results = pizzas_made_at_peak_times_cols(
+      peak_lunch_start,
+      peak_lunch_end,
+      peak_dinner_start,
+      peak_dinner_end
+    )) %>%
+    select(results) %>%
+    unnest(results)
+  
+  return (x)
+}
+```
+
+## Piping peaks
+
+```{r piping-peaks}
+new_peak_time_tibble <- function() {
+	peak_times <- tibble(
+		peak_lunch_start = character(),
+		peak_lunch_end = character(),
+		peak_dinner_start = character(),
+		peak_dinner_end = character()
+	)
+
+	return (peak_times)
+}
+
+append_peak_time_row <- function(
+	peak_times,
+	peak_lunch_start,
+	peak_lunch_end,
+	peak_dinner_start,
+	peak_dinner_end
+) {
+	peak_times <- peak_times %>%
+		add_row(
+			peak_lunch_start,
+			peak_lunch_end,
+			peak_dinner_start,
+			peak_dinner_end
+		)
+
+	return (peak_times)
+}
+```
+
+## The results
+
+```{r the-results}
+new_peak_time_tibble() %>%
+	# Green
+	append_peak_time_row('11:15:00', '14:00:00', '15:00:00', '20:30:00') %>%
+	# Orange
+	append_peak_time_row('11:30:00', '13:45:00', '15:45:00', '19:30:00') %>%
+	# Red
+	append_peak_time_row('11:45:00', '13:15:00', '16:30:00', '18:45:00') %>%
+	pizzas_made_for_various_peak_times() %>%
+	print()
+```
+
+## A point of reference
+
+```{r a-point-of-reference-1}
+new_peak_time_tibble() %>%
+	# Green
+	append_peak_time_row('11:15:00', '14:00:00', '15:00:00', '20:30:00') %>%
+	# Orange
+	append_peak_time_row('11:30:00', '13:45:00', '15:45:00', '19:30:00') %>%
+	# Red
+	append_peak_time_row('11:45:00', '13:15:00', '16:30:00', '18:45:00') %>%
+	pizzas_made_for_various_peak_times() %>%
+	# New percentage column created below
+	mutate(of_total_pizzas_made = pizzas_made / sum(order_details$quantity)) %>%
+	print()
+```
+
+```{r more-results}
+library("ggplot2")
+
+format_labels_for_plot <- function(results) {
+	results <- results %>%
+		mutate(
+			peak_lunch_start = str_replace(peak_lunch_start, ":00", ""),
+			peak_lunch_end = str_replace(peak_lunch_end, ":00", ""),
+			peak_dinner_start = str_replace(peak_dinner_start, ":00", ""),
+			peak_dinner_end = str_replace(peak_dinner_end, ":00", ""),
+			label = paste(
+				pizzas_made, " (", (floor(100 * of_total_pizzas_made)), "%)\n",
+				"\n",
+				"Peak lunch\n",
+				peak_lunch_start, " to ", peak_lunch_end, "\n",
+				"\n",
+				"Peak dinner\n",
+				peak_dinner_start, " to ", peak_dinner_end,
+				sep=""
+			)
+		)
+
+	return (results)
+}
+
+results <- new_peak_time_tibble() %>%
+	# Green
+	append_peak_time_row('11:15:00', '14:00:00', '15:00:00', '20:30:00') %>%
+	# Orange
+	append_peak_time_row('11:30:00', '13:45:00', '15:45:00', '19:30:00') %>%
+	# Red
+	append_peak_time_row('11:45:00', '13:15:00', '16:30:00', '18:45:00') %>%
+	pizzas_made_for_various_peak_times() %>%
+	mutate(of_total_pizzas_made = pizzas_made / sum(order_details$quantity)) %>%
+	format_labels_for_plot()
+
+fill_colours <- tibble(
+	name = c("green", "orange", "red"),
+	colour = c("#44c17b", "#FFA500", "#ff4d4d")
+)
+
+ggplot(results) +
+	geom_col(
+		position='dodge',
+		width=0.8,
+		aes(
+			x=label,
+			y=of_total_pizzas_made,
+			fill=fill_colours$name
+		)
+	) +
+	geom_text(
+		aes(x=label, y=of_total_pizzas_made, label=label),
+		size=3,
+		position=position_dodge(width=0.9),
+		vjust=0.85
+	) +
+	geom_label(
+		aes(
+			x=c(2),
+			y=c(1),
+			label=c(paste("Total pizzas made: ", sum(order_details$quantity), seq=""))
+		),
+		size=3,
+	) +
+	ylim(0, 1) +
+	scale_y_continuous(labels=scales::percent, limits=c(0, 1)) +
+	scale_fill_manual(values=fill_colours$colour) +
+	theme_bw() +
+	theme(
+		legend.position="none",
+		plot.title=element_text(hjust=0.5),
+		plot.subtitle=element_text(hjust=0.5),
+		plot.caption=element_text(hjust=0.5),
+		axis.text.x=element_blank(),
+		axis.title=element_blank(),
+		axis.ticks=element_blank(),
+		panel.grid.minor=element_blank(),
+		panel.grid.major.x=element_blank(),
+		panel.background=element_blank(),
+		panel.border=element_blank()
+	) +
+	labs(
+		title="How many pizzas are made during peak periods?",
+		subtitle="Depends on what you define as peek periods",
+	)
+
+ggsave("~/Downloads/pizzas-made-at-peak-times.png")
+```
+
+## Option 2: Using hourly rate of the average day to define peak time
 
 I'm thinking of using the hourly order rate to determine this, that is, I'm going to calculate the average number of orders for each hour in the average day for 2015 and filter those that are equal to or above a predetermined order rate.
 
@@ -115,7 +379,7 @@ calc_days_open <- function(orders) {
     distinct(date) %>%
     summarise(rows = n())
   
-  return (days_open$rows)
+  return (days_open$rows) # Returns a vector
 }
 
 calc_hourly_order_rates <- function(orders) {
