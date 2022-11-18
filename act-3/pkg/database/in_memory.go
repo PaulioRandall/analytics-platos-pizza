@@ -1,16 +1,15 @@
 package database
 
 import (
-	//"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/models"
+//"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
 type inMemory struct {
 	dataDictionaries []MetadataEntry
-	orders           []models.Orders
-	order_details    []models.OrderDetails
-	pizzas           []models.Pizzas
-	pizza_types      []models.PizzaTypes
+	orders           []Orders
+	order_details    []OrderDetails
+	pizzas           []Pizzas
+	pizza_types      []PizzaTypes
 }
 
 func CreateInMemoryDatabase() *inMemory {
