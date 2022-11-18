@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrDataInsert = err.NewTrackable("Failed to insert data")
+	ErrDataInsert = err.Track("Failed to insert data")
 )
 
 func insertData(db database.PlatosPizzaDatabase) error {
@@ -28,9 +28,11 @@ func insertData(db database.PlatosPizzaDatabase) error {
 }
 
 func readCSV(filename string) ([][]string, error) {
+	readErr := err.Track("Error reading CSV file %q", filename)
+
 	f, e := os.Open(filename)
 	if e != nil {
-		return nil, err.NewTrackable("Error reading CSV file %q", filename).Wrap(e)
+		return nil, readErr.Wrap(e)
 	}
 	defer f.Close()
 
@@ -39,7 +41,7 @@ func readCSV(filename string) ([][]string, error) {
 	records = records[1:] // Remove header
 
 	if e != nil {
-		return nil, err.NewTrackable("Error reading CSV file %q", filename).Wrap(e)
+		return nil, readErr.Wrap(e)
 	}
 
 	return records, nil

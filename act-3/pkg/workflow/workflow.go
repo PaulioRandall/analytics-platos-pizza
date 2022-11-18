@@ -7,19 +7,19 @@ import (
 )
 
 var (
-	ErrExecuting = err.NewTrackable("Failed to execute workflow")
+	ErrExecuting = err.Track("Failed to execute workflow")
 )
 
 func Execute() error {
 	db := database.CreateInMemoryDatabase()
 
 	if e := insertData(db); e != nil {
-		return ErrExecuting.Wrap(e)
+		return ErrExecuting.TraceWrap(e, "Inserting all data into in-memory database")
 	}
 
 	// Temp
 	if dataDicts, e := db.QueryAllDataDicts(); e != nil {
-		return ErrExecuting.Wrap(e)
+		return ErrExecuting.TraceWrap(e, "Quering all data dictionary entries")
 	} else {
 		models.PrintDataDictionary(dataDicts)
 	}

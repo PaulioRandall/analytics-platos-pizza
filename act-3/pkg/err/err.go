@@ -5,21 +5,28 @@ import (
 )
 
 var (
-	ErrTodo = NewTrackable("Implemention needed (TODO)")
+	ErrTodo = Track("Implemention needed (TODO)")
 )
 
-type Trackable struct {
+type trackable struct {
 	msg   string
 	cause error
 }
 
-func NewTrackable(msg string, args ...any) *Trackable {
-	return &Trackable{
+func Track(msg string, args ...any) *trackable {
+	return &trackable{
 		msg: fmt.Sprintf(msg, args...),
 	}
 }
 
-func (e *Trackable) Error() string {
+func Wrap(cause error, msg string, args ...any) *trackable {
+	return &trackable{
+		msg:   fmt.Sprintf(msg, args...),
+		cause: cause,
+	}
+}
+
+func (e *trackable) Error() string {
 	if e.cause == nil {
 		return e.msg
 	}
@@ -27,21 +34,21 @@ func (e *Trackable) Error() string {
 	return e.msg + "\n\t" + e.cause.Error()
 }
 
-func (e Trackable) Track(msg string, args ...any) *Trackable {
-	e.cause = NewTrackable(msg, args...)
-	return &e
+func (e trackable) Unwrap() error {
+	return e.cause
 }
 
-func (e Trackable) Wrap(cause error) *Trackable {
+func (e trackable) Wrap(cause error) *trackable {
 	e.cause = cause
 	return &e
 }
 
-func (e Trackable) WrapTrack(cause error, msg string, args ...any) *Trackable {
-	e.cause = NewTrackable(msg, args...).Wrap(cause)
+func (e trackable) Trace(msg string, args ...any) *trackable {
+	e.cause = Track(msg, args...)
 	return &e
 }
 
-func (e Trackable) Unwrap() error {
-	return e.cause
+func (e trackable) TraceWrap(cause error, msg string, args ...any) *trackable {
+	e.cause = Wrap(cause, msg, args...)
+	return &e
 }
