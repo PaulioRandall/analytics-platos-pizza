@@ -6,7 +6,7 @@ import (
 
 type inMemory struct {
 	dataDictionaries []MetadataEntry
-	orders           []Orders
+	orders           []Order
 	order_details    []OrderDetails
 	pizzas           []Pizzas
 	pizza_types      []PizzaTypes
@@ -23,4 +23,19 @@ func (db *inMemory) InsertMetadata(entry MetadataEntry) error {
 
 func (db *inMemory) QueryAllMetadata() ([]MetadataEntry, error) {
 	return db.dataDictionaries, nil
+}
+
+func (db *inMemory) InsertOrder(order Order) error {
+	db.orders = append(db.orders, order)
+	return nil
+}
+
+func (db *inMemory) QueryHeadOrders() ([]Order, error) {
+	const maxLen = 8
+
+	if len(db.orders) < maxLen {
+		return db.orders[:], nil
+	}
+
+	return db.orders[0:8], nil
 }

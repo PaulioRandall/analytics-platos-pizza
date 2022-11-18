@@ -16,12 +16,7 @@ func Execute() error {
 		return ErrExecuting.TraceWrap(e, "Inserting all data into in-memory database")
 	}
 
-	// Temp
-	if dataDict, e := db.QueryAllMetadata(); e != nil {
-		return ErrExecuting.TraceWrap(e, "Quering all data dictionary entries")
-	} else {
-		database.PrintMetadata(dataDict)
-	}
+	database.Print(db) // Temp
 
 	return nil
 }

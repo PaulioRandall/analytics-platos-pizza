@@ -6,4 +6,7 @@ package database
 type PlatosPizzaDatabase interface {
 	InsertMetadata(entry MetadataEntry) error
 	QueryAllMetadata() ([]MetadataEntry, error)
+
+	InsertOrder(order Order) error
+	QueryHeadOrders() ([]Order, error)
 }

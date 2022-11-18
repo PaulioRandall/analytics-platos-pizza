@@ -8,22 +8,38 @@ import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
-var (
-	ErrDataInsert = err.Track("Failed to insert data")
-)
-
 func insertData(db database.PlatosPizzaDatabase) error {
-	records, e := readCSV("../data/data_dictionary.csv")
+	e := insertMetadata(db, "../data/data_dictionary.csv")
 	if e != nil {
-		return ErrDataInsert.Wrap(e)
-	}
-
-	models := parseMetadata(records)
-	for _, m := range models {
-		db.InsertMetadata(m)
+		return e
 	}
 
 	return nil
+}
+
+func insertMetadata(db database.PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return err.Wrap(e, "Failed to read metadata %q", filename)
+	}
+
+	for i, v := range records {
+		m := parseMetadataEntry(v)
+		e := db.InsertMetadata(m)
+		if e != nil {
+			return err.Wrap(e, "Failed to insert metadata record at line %d", i+1)
+		}
+	}
+
+	return nil
+}
+
+func parseMetadataEntry(record []string) database.MetadataEntry {
+	return database.MetadataEntry{
+		Table:       record[0],
+		Field:       record[1],
+		Description: record[2],
+	}
 }
 
 func readCSV(filename string) ([][]string, error) {
@@ -44,23 +60,4 @@ func readCSV(filename string) ([][]string, error) {
 	}
 
 	return records, nil
-}
-
-func parseMetadata(data [][]string) []database.MetadataEntry {
-	results := make([]database.MetadataEntry, len(data))
-
-	for i, v := range data {
-		m := parseMetadataEntry(v)
-		results[i] = m
-	}
-
-	return results
-}
-
-func parseMetadataEntry(record []string) database.MetadataEntry {
-	return database.MetadataEntry{
-		Table:       record[0],
-		Field:       record[1],
-		Description: record[2],
-	}
 }
