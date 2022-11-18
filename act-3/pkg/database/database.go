@@ -8,5 +8,6 @@ import (
 // and information useful for analysing Plato's Pizzeria customer buying
 // habits.
 type PlatosPizzaDatabase interface {
+	QueryAllDataDicts() ([]models.DataDictionary, error)
 	InsertDataDictEntry(entry models.DataDictionary) error
 }

@@ -32,6 +32,16 @@ func (e Trackable) Track(msg string, args ...any) *Trackable {
 	return &e
 }
 
+func (e Trackable) Wrap(cause error) *Trackable {
+	e.cause = cause
+	return &e
+}
+
+func (e Trackable) WrapTrack(cause error, msg string, args ...any) *Trackable {
+	e.cause = NewTrackable(msg, args...).Wrap(cause)
+	return &e
+}
+
 func (e Trackable) Unwrap() error {
 	return e.cause
 }

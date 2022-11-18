@@ -17,6 +17,7 @@ func main() {
 	}
 
 	//printArgs()
+	fmt.Println()
 	printTasks(todos, 0)
 }
 
@@ -30,7 +31,6 @@ func printArgs() {
 var todos = []task{
 	todo("Put data into SQLite database").breakdown(
 		todo("Insert data into in mmeory database").breakdown(
-			todo("Insert data dictionary CSV"),
 			todo("Insert orders CSV"),
 			todo("Insert order_details CSV"),
 			todo("Insert pizzas CSV"),

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -9,6 +10,13 @@ type DataDictionary struct {
 	Table       string
 	Field       string
 	Description string
+}
+
+func PrintDataDictionary(entries []DataDictionary) {
+	fmt.Println(`"Table", "Field", "Description"`)
+	for _, entry := range entries {
+		fmt.Printf("%q, %q, %q\n", entry.Table, entry.Field, entry.Description)
+	}
 }
 
 // Orders represents an order of pizzas, one or many pizzas per order
