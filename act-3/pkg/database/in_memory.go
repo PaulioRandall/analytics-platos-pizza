@@ -6,7 +6,7 @@ import (
 )
 
 type inMemory struct {
-	dataDictionaries []models.DataDictionary
+	dataDictionaries []MetadataEntry
 	orders           []models.Orders
 	order_details    []models.OrderDetails
 	pizzas           []models.Pizzas
@@ -17,11 +17,11 @@ func CreateInMemoryDatabase() *inMemory {
 	return &inMemory{}
 }
 
-func (db *inMemory) InsertDataDictEntry(entry models.DataDictionary) error {
+func (db *inMemory) InsertMetadata(entry MetadataEntry) error {
 	db.dataDictionaries = append(db.dataDictionaries, entry)
 	return nil
 }
 
-func (db *inMemory) QueryAllDataDicts() ([]models.DataDictionary, error) {
+func (db *inMemory) QueryAllMetadata() ([]MetadataEntry, error) {
 	return db.dataDictionaries, nil
 }

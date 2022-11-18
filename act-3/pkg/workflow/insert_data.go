@@ -6,7 +6,6 @@ import (
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/models"
 )
 
 var (
@@ -19,9 +18,9 @@ func insertData(db database.PlatosPizzaDatabase) error {
 		return ErrDataInsert.Wrap(e)
 	}
 
-	models := parseDataDictionary(records)
+	models := parseMetadata(records)
 	for _, m := range models {
-		db.InsertDataDictEntry(m)
+		db.InsertMetadata(m)
 	}
 
 	return nil
@@ -47,19 +46,19 @@ func readCSV(filename string) ([][]string, error) {
 	return records, nil
 }
 
-func parseDataDictionary(data [][]string) []models.DataDictionary {
-	results := make([]models.DataDictionary, len(data))
+func parseMetadata(data [][]string) []database.MetadataEntry {
+	results := make([]database.MetadataEntry, len(data))
 
 	for i, v := range data {
-		m := parseDictionaryEntry(v)
+		m := parseMetadataEntry(v)
 		results[i] = m
 	}
 
 	return results
 }
 
-func parseDictionaryEntry(record []string) models.DataDictionary {
-	return models.DataDictionary{
+func parseMetadataEntry(record []string) database.MetadataEntry {
+	return database.MetadataEntry{
 		Table:       record[0],
 		Field:       record[1],
 		Description: record[2],

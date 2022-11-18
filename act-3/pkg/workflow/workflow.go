@@ -3,7 +3,6 @@ package workflow
 import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/models"
 )
 
 var (
@@ -18,10 +17,10 @@ func Execute() error {
 	}
 
 	// Temp
-	if dataDicts, e := db.QueryAllDataDicts(); e != nil {
+	if dataDict, e := db.QueryAllMetadata(); e != nil {
 		return ErrExecuting.TraceWrap(e, "Quering all data dictionary entries")
 	} else {
-		models.PrintDataDictionary(dataDicts)
+		database.PrintMetadata(dataDict)
 	}
 
 	return nil
