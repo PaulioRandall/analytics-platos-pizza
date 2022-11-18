@@ -4,10 +4,18 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/workflow"
 )
 
 func main() {
 	fmt.Println()
+
+	if e := workflow.Execute(); e != nil {
+		println("ERROR:", e.Error())
+		os.Exit(1)
+	}
+
 	//printArgs()
 	printTasks(todos, 0)
 }
