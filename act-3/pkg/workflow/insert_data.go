@@ -21,6 +21,11 @@ func insertData(db database.PlatosPizzaDatabase) error {
 		return e
 	}
 
+	e = insertOrderDetails(db, "../data/order_details.csv")
+	if e != nil {
+		return e
+	}
+
 	return nil
 }
 
@@ -70,6 +75,43 @@ func insertOrders(db database.PlatosPizzaDatabase, filename string) error {
 
 		if e = db.InsertOrder(order); e != nil {
 			return err.Wrap(e, "Failed to insert order record at line %d", i+1)
+		}
+	}
+
+	return nil
+}
+
+func insertOrderDetails(db database.PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return err.Wrap(e, "Failed to read order details %q", filename)
+	}
+
+	for i, record := range records {
+		id, e := strconv.Atoi(record[0])
+		if e != nil {
+			return err.Wrap(e, "Bad order details ID discovered")
+		}
+
+		orderId, e := strconv.Atoi(record[1])
+		if e != nil {
+			return err.Wrap(e, "Bad order ID discovered")
+		}
+
+		quantity, e := strconv.Atoi(record[3])
+		if e != nil {
+			return err.Wrap(e, "Bad quantity value discovered")
+		}
+
+		orderDetail := database.OrderDetail{
+			Id:       id,
+			OrderId:  orderId,
+			PizzaId:  record[2],
+			Quantity: quantity,
+		}
+
+		if e = db.InsertOrderDetail(orderDetail); e != nil {
+			return err.Wrap(e, "Failed to insert order detail at line %d", i+1)
 		}
 	}
 

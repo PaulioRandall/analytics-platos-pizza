@@ -4,12 +4,14 @@ import (
 //"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
+const queryHeadMax = 16
+
 type inMemory struct {
 	dataDictionaries []MetadataEntry
 	orders           []Order
-	order_details    []OrderDetails
+	orderDetails     []OrderDetail
 	pizzas           []Pizzas
-	pizza_types      []PizzaTypes
+	pizzaTypes       []PizzaTypes
 }
 
 func CreateInMemoryDatabase() *inMemory {
@@ -31,11 +33,22 @@ func (db *inMemory) InsertOrder(order Order) error {
 }
 
 func (db *inMemory) QueryHeadOrders() ([]Order, error) {
-	const maxLen = 8
-
-	if len(db.orders) < maxLen {
+	if len(db.orders) < queryHeadMax {
 		return db.orders[:], nil
 	}
 
-	return db.orders[0:8], nil
+	return db.orders[0:queryHeadMax], nil
+}
+
+func (db *inMemory) InsertOrderDetail(orderDetail OrderDetail) error {
+	db.orderDetails = append(db.orderDetails, orderDetail)
+	return nil
+}
+
+func (db *inMemory) QueryHeadOrderDetails() ([]OrderDetail, error) {
+	if len(db.orderDetails) < queryHeadMax {
+		return db.orderDetails[:], nil
+	}
+
+	return db.orderDetails[0:queryHeadMax], nil
 }

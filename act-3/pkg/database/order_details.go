@@ -1,8 +1,14 @@
 package database
 
-// OrderDetails represents a specific pizza type order, one or more pizzas,
+import (
+	"fmt"
+
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+)
+
+// OrderDetail represents a specific pizza type order, one or more pizzas,
 // within an order
-type OrderDetails struct {
+type OrderDetail struct {
 	// Unique identifier for each pizza placed within each order
 	// (pizzas of the same type and size are kept in the same row, and the quantity increases)
 	Id int
@@ -11,8 +17,29 @@ type OrderDetails struct {
 	OrderId int
 
 	// Foreign key that ties the pizza ordered to its details, like size and price
-	PizzaId int
+	PizzaId string
 
 	// Quantity ordered for each pizza of the same type and size
 	Quantity int
+}
+
+func PrintOrderDetails(orderDetails []OrderDetail) {
+	fmt.Println("[Order details]")
+	fmt.Println(`"ID", "Order ID", "Pizza ID", "Quantity"`)
+	for _, v := range orderDetails {
+		fmt.Printf("%d, %d, %q, %d\n", v.Id, v.OrderId, v.PizzaId, v.Quantity)
+	}
+}
+
+func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
+	records, e := db.QueryHeadOrderDetails()
+
+	if e != nil {
+		return err.Wrap(e, "Quering head of order_details")
+	}
+
+	PrintOrderDetails(records)
+	fmt.Println("...")
+
+	return nil
 }

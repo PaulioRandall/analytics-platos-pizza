@@ -19,7 +19,7 @@ type Order struct {
 
 func PrintOrders(orders []Order) {
 	fmt.Println("[Orders]")
-	fmt.Println(`"Id", "Datetime"`)
+	fmt.Println(`"ID", "Datetime"`)
 	for _, entry := range orders {
 		fmt.Printf("%d, %q\n", entry.Id, entry.Datetime)
 	}
@@ -29,7 +29,7 @@ func QueryPrintOrders(db PlatosPizzaDatabase) error {
 	records, e := db.QueryHeadOrders()
 
 	if e != nil {
-		return err.Wrap(e, "Quering all metadata")
+		return err.Wrap(e, "Quering head of orders")
 	}
 
 	PrintOrders(records)

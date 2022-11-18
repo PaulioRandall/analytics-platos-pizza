@@ -10,11 +10,14 @@ import (
 // and information useful for analysing Plato's Pizzeria customer buying
 // habits.
 type PlatosPizzaDatabase interface {
-	InsertMetadata(entry MetadataEntry) error
+	InsertMetadata(MetadataEntry) error
 	QueryAllMetadata() ([]MetadataEntry, error)
 
-	InsertOrder(order Order) error
+	InsertOrder(Order) error
 	QueryHeadOrders() ([]Order, error)
+
+	InsertOrderDetail(OrderDetail) error
+	QueryHeadOrderDetails() ([]OrderDetail, error)
 }
 
 func Print(db PlatosPizzaDatabase) error {
@@ -27,6 +30,12 @@ func Print(db PlatosPizzaDatabase) error {
 	fmt.Println()
 
 	if e := QueryPrintOrders(db); e != nil {
+		return printErr.Wrap(e)
+	}
+
+	fmt.Println()
+
+	if e := QueryPrintOrderDetails(db); e != nil {
 		return printErr.Wrap(e)
 	}
 
