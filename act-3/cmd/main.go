@@ -21,53 +21,23 @@ func printArgs() {
 
 var todos = []task{
 	todo("Put data into SQLite database").breakdown(
-		todo("Design initial database interface"),
-		todo("Create in memory implementation"),
-		todo("Create data dictionary table").breakdown(
-			todo("Create data model"),
-			todo("Insert data from CSV"),
-		),
-		todo("Create order table").breakdown(
-			todo("Create data model"),
-			todo("Insert data from CSV"),
-		),
-		todo("Create order_details table").breakdown(
-			todo("Create data model"),
-			todo("Insert data from CSV"),
-		),
-		todo("Create pizzas table").breakdown(
-			todo("Create data model"),
-			todo("Insert data from CSV"),
-		),
-		todo("Create pizza_types table").breakdown(
-			todo("Create data model"),
-			todo("Insert data from CSV"),
+		todo("Insert data into in mmeory database").breakdown(
+			todo("Insert data dictionary CSV"),
+			todo("Insert orders CSV"),
+			todo("Insert order_details CSV"),
+			todo("Insert pizzas CSV"),
+			todo("Insert pizza_types CSV"),
 		),
 		todo("Import SQLite library"),
 		todo("Create SQLite database").breakdown(
 			todo("Create tables"),
 		),
 		todo("Insert data into new SQLite database").breakdown(
-			todo("Insert data dictionary").breakdown(
-				todo("Insert data"),
-				todo("Read data"),
-			),
-			todo("Insert orders").breakdown(
-				todo("Insert data"),
-				todo("Read data"),
-			),
-			todo("Insert order_details").breakdown(
-				todo("Insert data"),
-				todo("Read data"),
-			),
-			todo("Insert pizzas").breakdown(
-				todo("Insert data"),
-				todo("Read data"),
-			),
-			todo("Insert pizza_types").breakdown(
-				todo("Insert data"),
-				todo("Read data"),
-			),
+			todo("Insert data dictionary"),
+			todo("Insert orders"),
+			todo("Insert order_details"),
+			todo("Insert pizzas"),
+			todo("Insert pizza_types"),
 		),
 	),
 }
