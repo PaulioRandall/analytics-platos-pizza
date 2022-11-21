@@ -18,6 +18,9 @@ type PlatosPizzaDatabase interface {
 
 	InsertOrderDetail(OrderDetail) error
 	QueryHeadOrderDetails() ([]OrderDetail, error)
+
+	InsertPizza(Pizza) error
+	QueryHeadPizzas() ([]Pizza, error)
 }
 
 func Print(db PlatosPizzaDatabase) error {
@@ -36,6 +39,12 @@ func Print(db PlatosPizzaDatabase) error {
 	fmt.Println()
 
 	if e := QueryPrintOrderDetails(db); e != nil {
+		return printErr.Wrap(e)
+	}
+
+	fmt.Println()
+
+	if e := QueryPrintPizzas(db); e != nil {
 		return printErr.Wrap(e)
 	}
 

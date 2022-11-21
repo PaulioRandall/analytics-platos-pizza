@@ -10,8 +10,8 @@ type inMemory struct {
 	dataDictionaries []MetadataEntry
 	orders           []Order
 	orderDetails     []OrderDetail
-	pizzas           []Pizzas
-	pizzaTypes       []PizzaTypes
+	pizzas           []Pizza
+	pizzaTypes       []PizzaType
 }
 
 func CreateInMemoryDatabase() *inMemory {
@@ -51,4 +51,17 @@ func (db *inMemory) QueryHeadOrderDetails() ([]OrderDetail, error) {
 	}
 
 	return db.orderDetails[0:queryHeadMax], nil
+}
+
+func (db *inMemory) InsertPizza(pizza Pizza) error {
+	db.pizzas = append(db.pizzas, pizza)
+	return nil
+}
+
+func (db *inMemory) QueryHeadPizzas() ([]Pizza, error) {
+	if len(db.pizzas) < queryHeadMax {
+		return db.pizzas[:], nil
+	}
+
+	return db.pizzas[0:queryHeadMax], nil
 }

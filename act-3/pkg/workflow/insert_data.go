@@ -13,17 +13,22 @@ import (
 func insertData(db database.PlatosPizzaDatabase) error {
 	e := insertMetadata(db, "../data/data_dictionary.csv")
 	if e != nil {
-		return e
+		return err.Wrap(e, "Failed to insert metadata")
 	}
 
 	e = insertOrders(db, "../data/orders.csv")
 	if e != nil {
-		return e
+		return err.Wrap(e, "Failed to insert orders")
 	}
 
 	e = insertOrderDetails(db, "../data/order_details.csv")
 	if e != nil {
-		return e
+		return err.Wrap(e, "Failed to insert order details")
+	}
+
+	e = insertPizzas(db, "../data/pizzas.csv")
+	if e != nil {
+		return err.Wrap(e, "Failed to insert pizzas")
 	}
 
 	return nil
@@ -112,6 +117,33 @@ func insertOrderDetails(db database.PlatosPizzaDatabase, filename string) error 
 
 		if e = db.InsertOrderDetail(orderDetail); e != nil {
 			return err.Wrap(e, "Failed to insert order detail at line %d", i+1)
+		}
+	}
+
+	return nil
+}
+
+func insertPizzas(db database.PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return err.Wrap(e, "Failed to read pizzas %q", filename)
+	}
+
+	for i, record := range records {
+		price, e := strconv.ParseFloat(record[3], 64)
+		if e != nil {
+			return err.Wrap(e, "Bad price value discovered")
+		}
+
+		pizza := database.Pizza{
+			Id:          record[0],
+			PizzaTypeId: record[1],
+			Size:        record[2],
+			Price:       price,
+		}
+
+		if e = db.InsertPizza(pizza); e != nil {
+			return err.Wrap(e, "Failed to insert pizza at line %d", i+1)
 		}
 	}
 

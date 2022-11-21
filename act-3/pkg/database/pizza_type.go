@@ -1,6 +1,6 @@
 package database
 
-type PizzaTypes struct {
+type PizzaType struct {
 	// Unique identifier for each pizza type
 	Id int
 
