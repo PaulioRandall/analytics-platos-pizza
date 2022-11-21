@@ -65,3 +65,16 @@ func (db *inMemory) QueryHeadPizzas() ([]Pizza, error) {
 
 	return db.pizzas[0:queryHeadMax], nil
 }
+
+func (db *inMemory) InsertPizzaType(pizzaType PizzaType) error {
+	db.pizzaTypes = append(db.pizzaTypes, pizzaType)
+	return nil
+}
+
+func (db *inMemory) QueryHeadPizzaTypes() ([]PizzaType, error) {
+	if len(db.pizzaTypes) < queryHeadMax {
+		return db.pizzaTypes[:], nil
+	}
+
+	return db.pizzaTypes[0:queryHeadMax], nil
+}

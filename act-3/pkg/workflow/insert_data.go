@@ -31,6 +31,11 @@ func insertData(db database.PlatosPizzaDatabase) error {
 		return err.Wrap(e, "Failed to insert pizzas")
 	}
 
+	e = insertPizzaTypes(db, "../data/pizza_types.csv")
+	if e != nil {
+		return err.Wrap(e, "Failed to insert pizza types")
+	}
+
 	return nil
 }
 
@@ -144,6 +149,28 @@ func insertPizzas(db database.PlatosPizzaDatabase, filename string) error {
 
 		if e = db.InsertPizza(pizza); e != nil {
 			return err.Wrap(e, "Failed to insert pizza at line %d", i+1)
+		}
+	}
+
+	return nil
+}
+
+func insertPizzaTypes(db database.PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return err.Wrap(e, "Failed to read pizza types %q", filename)
+	}
+
+	for i, record := range records {
+		pizzaType := database.PizzaType{
+			Id:          record[0],
+			Name:        record[1],
+			Category:    record[2],
+			Ingredients: record[3],
+		}
+
+		if e = db.InsertPizzaType(pizzaType); e != nil {
+			return err.Wrap(e, "Failed to insert pizza type at line %d", i+1)
 		}
 	}
 
