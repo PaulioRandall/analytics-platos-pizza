@@ -11,19 +11,16 @@ import (
 // habits.
 type PlatosPizzaDatabase interface {
 	InsertMetadata(MetadataEntry) error
-	QueryAllMetadata() ([]MetadataEntry, error)
-
 	InsertOrder(Order) error
-	QueryHeadOrders() ([]Order, error)
-
 	InsertOrderDetail(OrderDetail) error
-	QueryHeadOrderDetails() ([]OrderDetail, error)
-
 	InsertPizza(Pizza) error
-	QueryHeadPizzas() ([]Pizza, error)
-
 	InsertPizzaType(PizzaType) error
-	QueryHeadPizzaTypes() ([]PizzaType, error)
+
+	AllMetadata() ([]MetadataEntry, error)
+	HeadOrders() ([]Order, error)
+	HeadOrderDetails() ([]OrderDetail, error)
+	HeadPizzas() ([]Pizza, error)
+	HeadPizzaTypes() ([]PizzaType, error)
 }
 
 func Print(db PlatosPizzaDatabase) error {

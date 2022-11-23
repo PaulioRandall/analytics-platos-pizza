@@ -9,7 +9,11 @@ import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
-func InsertMetadata(db PlatosPizzaDatabase, filename string) error {
+var (
+	ErrCSVFile = err.Track("Error handling CSV file")
+)
+
+func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
 		return err.Wrap(e, "Failed to read metadata %q", filename)
@@ -24,14 +28,16 @@ func InsertMetadata(db PlatosPizzaDatabase, filename string) error {
 
 		e := db.InsertMetadata(entry)
 		if e != nil {
-			return err.Wrap(e, "Failed to insert metadata record at line %d", i+1)
+			return err.Wrap(e,
+				"Failed to insert metadata record at line %d", lineNumber(i),
+			)
 		}
 	}
 
 	return nil
 }
 
-func InsertOrders(db PlatosPizzaDatabase, filename string) error {
+func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
 		return err.Wrap(e, "Failed to read orders %q", filename)
@@ -54,14 +60,16 @@ func InsertOrders(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertOrder(order); e != nil {
-			return err.Wrap(e, "Failed to insert order record at line %d", i+1)
+			return err.Wrap(e,
+				"Failed to insert order record at line %d", lineNumber(i),
+			)
 		}
 	}
 
 	return nil
 }
 
-func InsertOrderDetails(db PlatosPizzaDatabase, filename string) error {
+func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
 		return err.Wrap(e, "Failed to read order details %q", filename)
@@ -91,14 +99,16 @@ func InsertOrderDetails(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertOrderDetail(orderDetail); e != nil {
-			return err.Wrap(e, "Failed to insert order detail at line %d", i+1)
+			return err.Wrap(e,
+				"Failed to insert order detail at line %d", lineNumber(i),
+			)
 		}
 	}
 
 	return nil
 }
 
-func InsertPizzas(db PlatosPizzaDatabase, filename string) error {
+func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
 		return err.Wrap(e, "Failed to read pizzas %q", filename)
@@ -118,14 +128,14 @@ func InsertPizzas(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizza(pizza); e != nil {
-			return err.Wrap(e, "Failed to insert pizza at line %d", i+1)
+			return err.Wrap(e, "Failed to insert pizza at line %d", lineNumber(i))
 		}
 	}
 
 	return nil
 }
 
-func InsertPizzaTypes(db PlatosPizzaDatabase, filename string) error {
+func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
 		return err.Wrap(e, "Failed to read pizza types %q", filename)
@@ -140,19 +150,25 @@ func InsertPizzaTypes(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizzaType(pizzaType); e != nil {
-			return err.Wrap(e, "Failed to insert pizza type at line %d", i+1)
+			return err.Wrap(e,
+				"Failed to insert pizza type at line %d", lineNumber(i),
+			)
 		}
 	}
 
 	return nil
 }
 
-func readCSV(filename string) ([][]string, error) {
-	readErr := err.Track("Error reading CSV file %q", filename)
+func lineNumber(i int) int {
+	i++ // Convert from index to count
+	i++ // Skip the header
+	return i
+}
 
+func readCSV(filename string) ([][]string, error) {
 	f, e := os.Open(filename)
 	if e != nil {
-		return nil, readErr.Wrap(e)
+		return nil, ErrCSVFile.TraceWrap(e, "Could not open file %q", filename)
 	}
 	defer f.Close()
 
@@ -161,7 +177,7 @@ func readCSV(filename string) ([][]string, error) {
 	records = records[1:] // Remove header
 
 	if e != nil {
-		return nil, readErr.Wrap(e)
+		return nil, ErrCSVFile.TraceWrap(e, "Could not read file %q", filename)
 	}
 
 	return records, nil

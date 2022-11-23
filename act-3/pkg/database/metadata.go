@@ -21,7 +21,7 @@ func PrintMetadata(entries []MetadataEntry) {
 }
 
 func QueryPrintMetadata(db PlatosPizzaDatabase) error {
-	records, e := db.QueryAllMetadata()
+	records, e := db.AllMetadata()
 
 	if e != nil {
 		return err.Wrap(e, "Quering all metadata")

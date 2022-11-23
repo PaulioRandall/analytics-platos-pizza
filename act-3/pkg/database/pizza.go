@@ -29,7 +29,7 @@ func PrintPizzas(pizzas []Pizza) {
 }
 
 func QueryPrintPizzas(db PlatosPizzaDatabase) error {
-	records, e := db.QueryHeadPizzas()
+	records, e := db.HeadPizzas()
 
 	if e != nil {
 		return err.Wrap(e, "Quering head of pizzas")

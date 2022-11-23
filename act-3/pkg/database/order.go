@@ -26,7 +26,7 @@ func PrintOrders(orders []Order) {
 }
 
 func QueryPrintOrders(db PlatosPizzaDatabase) error {
-	records, e := db.QueryHeadOrders()
+	records, e := db.HeadOrders()
 
 	if e != nil {
 		return err.Wrap(e, "Quering head of orders")

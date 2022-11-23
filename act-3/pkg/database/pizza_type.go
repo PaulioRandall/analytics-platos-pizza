@@ -32,7 +32,7 @@ func PrintPizzaTypes(pizzaTypes []PizzaType) {
 }
 
 func QueryPrintPizzaTypes(db PlatosPizzaDatabase) error {
-	records, e := db.QueryHeadPizzaTypes()
+	records, e := db.HeadPizzaTypes()
 
 	if e != nil {
 		return err.Wrap(e, "Quering head of pizza types")

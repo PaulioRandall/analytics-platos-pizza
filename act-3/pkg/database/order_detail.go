@@ -32,7 +32,7 @@ func PrintOrderDetails(orderDetails []OrderDetail) {
 }
 
 func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
-	records, e := db.QueryHeadOrderDetails()
+	records, e := db.HeadOrderDetails()
 
 	if e != nil {
 		return err.Wrap(e, "Quering head of order_details")

@@ -38,6 +38,14 @@ func (e trackable) Unwrap() error {
 	return e.cause
 }
 
+func (e trackable) Is(other error) bool {
+	if oe, ok := other.(*trackable); ok {
+		return e.msg == oe.msg
+	}
+
+	return false
+}
+
 func (e trackable) Wrap(cause error) *trackable {
 	e.cause = cause
 	return &e

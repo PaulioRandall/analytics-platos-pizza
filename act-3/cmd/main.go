@@ -30,13 +30,12 @@ func printArgs() {
 
 var todos = []task{
 	todo("Put data into SQLite database").breakdown(
-		todo("Insert data into in mmeory database").breakdown(
-			todo("Insert pizza_types CSV"),
-		),
+		todo("Do write up for insertions"),
 		todo("Import SQLite library"),
 		todo("Create SQLite database").breakdown(
 			todo("Create tables"),
 		),
+		todo("Do write up for SQLite database creation"),
 		todo("Insert data into new SQLite database").breakdown(
 			todo("Insert data dictionary"),
 			todo("Insert orders"),

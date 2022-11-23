@@ -10,10 +10,10 @@ var (
 )
 
 func Execute() error {
-	db := database.CreateInMemoryDatabase()
+	db := database.NewInMemoryDatabase()
 
-	if e := insertData(db); e != nil {
-		return ErrExecuting.TraceWrap(e, "Inserting all data into in-memory database")
+	if e := insertCSVData(db); e != nil {
+		return ErrExecuting.TraceWrap(e, "Inserting all CSV data into database")
 	}
 
 	database.Print(db) // Temp
@@ -21,28 +21,28 @@ func Execute() error {
 	return nil
 }
 
-func insertData(db database.PlatosPizzaDatabase) error {
-	e := database.InsertMetadata(db, "../data/data_dictionary.csv")
+func insertCSVData(db database.PlatosPizzaDatabase) error {
+	e := database.InsertMetadataFromCSV(db, "../data/data_dictionary.csv")
 	if e != nil {
 		return err.Wrap(e, "Failed to insert metadata")
 	}
 
-	e = database.InsertOrders(db, "../data/orders.csv")
+	e = database.InsertOrdersFromCSV(db, "../data/orders.csv")
 	if e != nil {
 		return err.Wrap(e, "Failed to insert orders")
 	}
 
-	e = database.InsertOrderDetails(db, "../data/order_details.csv")
+	e = database.InsertOrderDetailsFromCSV(db, "../data/order_details.csv")
 	if e != nil {
 		return err.Wrap(e, "Failed to insert order details")
 	}
 
-	e = database.InsertPizzas(db, "../data/pizzas.csv")
+	e = database.InsertPizzasFromCSV(db, "../data/pizzas.csv")
 	if e != nil {
 		return err.Wrap(e, "Failed to insert pizzas")
 	}
 
-	e = database.InsertPizzaTypes(db, "../data/pizza_types.csv")
+	e = database.InsertPizzaTypesFromCSV(db, "../data/pizza_types.csv")
 	if e != nil {
 		return err.Wrap(e, "Failed to insert pizza types")
 	}
