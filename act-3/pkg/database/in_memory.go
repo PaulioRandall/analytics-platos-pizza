@@ -7,12 +7,12 @@ import (
 var ErrInMemory = err.Track("In-memory database error")
 
 type inMemory struct {
-	closed           bool
-	dataDictionaries []MetadataEntry
-	orders           []Order
-	orderDetails     []OrderDetail
-	pizzas           []Pizza
-	pizzaTypes       []PizzaType
+	closed       bool
+	metadata     []MetadataEntry
+	orders       []Order
+	orderDetails []OrderDetail
+	pizzas       []Pizza
+	pizzaTypes   []PizzaType
 }
 
 func OpenInMemoryDatabase() *inMemory {
@@ -21,7 +21,7 @@ func OpenInMemoryDatabase() *inMemory {
 
 func (db *inMemory) InsertMetadata(entry MetadataEntry) error {
 	return inMemoryInsert(db, func() {
-		db.dataDictionaries = append(db.dataDictionaries, entry)
+		db.metadata = append(db.metadata, entry)
 	})
 }
 
@@ -51,7 +51,7 @@ func (db *inMemory) InsertPizzaType(pizzaType PizzaType) error {
 
 func (db *inMemory) AllMetadata() ([]MetadataEntry, error) {
 	return inMemoryExecute(db, func() ([]MetadataEntry, error) {
-		return db.dataDictionaries[:], nil
+		return db.metadata[:], nil
 	})
 }
 
@@ -82,7 +82,7 @@ func (db *inMemory) HeadPizzaTypes() ([]PizzaType, error) {
 func (db *inMemory) Close() {
 	db.closed = true
 
-	db.dataDictionaries = nil
+	db.metadata = nil
 	db.orders = nil
 	db.orderDetails = nil
 	db.pizzas = nil
@@ -96,7 +96,7 @@ func inMemoryExecute[T any](db *inMemory, q query[T]) ([]T, error) {
 
 	result, e := q()
 	if e != nil {
-		e = ErrInMemory.Wrap(ErrQuery, e)
+		e = ErrInMemory.TrackWrap(ErrQuery, e)
 	}
 
 	return result, e

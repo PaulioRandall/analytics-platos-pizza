@@ -31,7 +31,7 @@ func (e *trackable) Error() string {
 		return e.msg
 	}
 
-	return e.msg + "\n\t" + e.cause.Error()
+	return e.msg + "\n\t⤷ " + e.cause.Error()
 }
 
 func (e trackable) Unwrap() error {
@@ -46,20 +46,14 @@ func (e trackable) Is(other error) bool {
 	return false
 }
 
-func (e *trackable) Wrap(causes ...error) *trackable {
-	var parent *trackable = &(*e)
+func (e trackable) Wrap(cause error) *trackable {
+	e.cause = cause
+	return &e
+}
 
-	for _, c := range causes {
-		child, ok := c.(*trackable)
-		if !ok {
-			child = Wrap(c, "[Trackable wrapper]")
-		}
-
-		parent.cause = child
-		parent = child
-	}
-
-	return e
+func (e trackable) TrackWrap(tr *trackable, cause error) *trackable {
+	w := tr.Wrap(cause)
+	return e.Wrap(w)
 }
 
 func (e trackable) Trace(msg string, args ...any) *trackable {

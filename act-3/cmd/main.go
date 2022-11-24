@@ -12,7 +12,7 @@ func main() {
 	fmt.Println()
 
 	if e := workflow.Execute(); e != nil {
-		println("ERROR:", e.Error())
+		println("ERROR:\n ", e.Error())
 		os.Exit(1)
 	}
 
@@ -30,14 +30,11 @@ func printArgs() {
 
 var todos = []task{
 	todo("Create SQLite implementation of the database interface").breakdown(
-		todo("Find and import SQLite Go package & any drivers").breakdown(
-			todo("Create database as a file"),
-			todo("Add the tables & data:").breakdown(
-				todo("Design & create tables based upon content models"),
-				todo("Write SQL to insert data from content models into tables"),
-				todo("Write SQL to read data to ensure correct storage"),
-				todo("Insert data & read back to check success"),
-			),
+		todo("Add the tables & data:").breakdown(
+			todo("Design, create, insert, & read back orders table & data"),
+			todo("Design, create, insert, & read back order_details table & data"),
+			todo("Design, create, insert, & read back pizzas table & data"),
+			todo("Design, create, insert, & read back pizza_types table & data"),
 		),
 	),
 }

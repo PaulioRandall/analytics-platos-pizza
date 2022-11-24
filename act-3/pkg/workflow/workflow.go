@@ -6,15 +6,18 @@ import (
 )
 
 var (
-	ErrExecuting = err.Track("Failed to execute workflow")
+	ErrWorkflow = err.Track("Failed to execute workflow")
 )
 
 func Execute() error {
-	db := database.OpenInMemoryDatabase()
+	db, e := database.OpenSQLiteDatabase("./build/platos-pizza.sqlite")
+	if e != nil {
+		return ErrWorkflow.TraceWrap(e, "Failed to open database")
+	}
 	defer db.Close()
 
 	if e := insertCSVData(db); e != nil {
-		return ErrExecuting.TraceWrap(e, "Inserting all CSV data into database")
+		return ErrWorkflow.TraceWrap(e, "Failed to insert CSV data into database")
 	}
 
 	database.Print(db) // Temp
@@ -22,29 +25,34 @@ func Execute() error {
 }
 
 func insertCSVData(db database.PlatosPizzaDatabase) error {
-	e := database.InsertMetadataFromCSV(db, "../data/data_dictionary.csv")
+	file := "../data/data_dictionary.csv"
+	e := database.InsertMetadataFromCSV(db, file)
 	if e != nil {
-		return err.Wrap(e, "Failed to insert metadata")
+		return err.Wrap(e, "Failed to insert metadata from %q", file)
 	}
 
-	e = database.InsertOrdersFromCSV(db, "../data/orders.csv")
+	file = "../data/orders.csv"
+	e = database.InsertOrdersFromCSV(db, file)
 	if e != nil {
-		return err.Wrap(e, "Failed to insert orders")
+		return err.Wrap(e, "Failed to insert orders from %q", file)
 	}
 
-	e = database.InsertOrderDetailsFromCSV(db, "../data/order_details.csv")
+	file = "../data/order_details.csv"
+	e = database.InsertOrderDetailsFromCSV(db, file)
 	if e != nil {
-		return err.Wrap(e, "Failed to insert order details")
+		return err.Wrap(e, "Failed to insert order details from %q", file)
 	}
 
-	e = database.InsertPizzasFromCSV(db, "../data/pizzas.csv")
+	file = "../data/pizzas.csv"
+	e = database.InsertPizzasFromCSV(db, file)
 	if e != nil {
-		return err.Wrap(e, "Failed to insert pizzas")
+		return err.Wrap(e, "Failed to insert pizzas from %q", file)
 	}
 
-	e = database.InsertPizzaTypesFromCSV(db, "../data/pizza_types.csv")
+	file = "../data/pizza_types.csv"
+	e = database.InsertPizzaTypesFromCSV(db, file)
 	if e != nil {
-		return err.Wrap(e, "Failed to insert pizza types")
+		return err.Wrap(e, "Failed to insert pizza types from %q", file)
 	}
 
 	return nil

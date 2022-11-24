@@ -11,9 +11,12 @@ const (
 )
 
 var (
-	ErrInsert = err.Track("Failed to execute data insertion")
-	ErrQuery  = err.Track("Failed to execute query")
-	ErrClosed = err.Track("Can't execute requests on a closed database")
+	ErrCreateOrUpdate = err.Track("Failed to execute table creation or update")
+	ErrPrepare        = err.Track("Failed to prepare statement")
+	ErrInsert         = err.Track("Failed to execute data insert")
+	ErrQuery          = err.Track("Failed to execute query")
+	ErrResult         = err.Track("Failed to read or parse results")
+	ErrClosed         = err.Track("Can't execute requests on a closed database")
 )
 
 type query[T any] func() ([]T, error)
