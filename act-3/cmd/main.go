@@ -29,19 +29,15 @@ func printArgs() {
 }
 
 var todos = []task{
-	todo("Put data into SQLite database").breakdown(
-		todo("Do write up for insertions"),
-		todo("Import SQLite library"),
-		todo("Create SQLite database").breakdown(
-			todo("Create tables"),
-		),
-		todo("Do write up for SQLite database creation"),
-		todo("Insert data into new SQLite database").breakdown(
-			todo("Insert data dictionary"),
-			todo("Insert orders"),
-			todo("Insert order_details"),
-			todo("Insert pizzas"),
-			todo("Insert pizza_types"),
+	todo("Create SQLite implementation of the database interface").breakdown(
+		todo("Find and import SQLite Go package & any drivers").breakdown(
+			todo("Create database as a file"),
+			todo("Add the tables & data:").breakdown(
+				todo("Design & create tables based upon content models"),
+				todo("Write SQL to insert data from content models into tables"),
+				todo("Write SQL to read data to ensure correct storage"),
+				todo("Insert data & read back to check success"),
+			),
 		),
 	),
 }

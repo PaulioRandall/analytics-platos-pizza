@@ -10,14 +10,14 @@ var (
 )
 
 func Execute() error {
-	db := database.NewInMemoryDatabase()
+	db := database.OpenInMemoryDatabase()
+	defer db.Close()
 
 	if e := insertCSVData(db); e != nil {
 		return ErrExecuting.TraceWrap(e, "Inserting all CSV data into database")
 	}
 
 	database.Print(db) // Temp
-
 	return nil
 }
 

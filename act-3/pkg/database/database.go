@@ -6,6 +6,18 @@ import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
+const (
+	QueryHeadMax = 8
+)
+
+var (
+	ErrInsert = err.Track("Failed to execute data insertion")
+	ErrQuery  = err.Track("Failed to execute query")
+	ErrClosed = err.Track("Can't execute requests on a closed database")
+)
+
+type query[T any] func() ([]T, error)
+
 // PlatosPizzaDatabase represents an interface to a database of orders, pizzas,
 // and information useful for analysing Plato's Pizzeria customer buying
 // habits.
@@ -21,6 +33,8 @@ type PlatosPizzaDatabase interface {
 	HeadOrderDetails() ([]OrderDetail, error)
 	HeadPizzas() ([]Pizza, error)
 	HeadPizzaTypes() ([]PizzaType, error)
+
+	Close() // Panics if error encountered
 }
 
 func Print(db PlatosPizzaDatabase) error {

@@ -46,9 +46,20 @@ func (e trackable) Is(other error) bool {
 	return false
 }
 
-func (e trackable) Wrap(cause error) *trackable {
-	e.cause = cause
-	return &e
+func (e *trackable) Wrap(causes ...error) *trackable {
+	var parent *trackable = &(*e)
+
+	for _, c := range causes {
+		child, ok := c.(*trackable)
+		if !ok {
+			child = Wrap(c, "[Trackable wrapper]")
+		}
+
+		parent.cause = child
+		parent = child
+	}
+
+	return e
 }
 
 func (e trackable) Trace(msg string, args ...any) *trackable {
