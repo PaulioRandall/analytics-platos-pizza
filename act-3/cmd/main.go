@@ -31,10 +31,9 @@ func printArgs() {
 var todos = []task{
 	todo("Create SQLite implementation of the database interface").breakdown(
 		todo("Add the tables & data:").breakdown(
-			todo("Design, create, insert, & read back orders table & data"),
-			todo("Design, create, insert, & read back order_details table & data"),
-			todo("Design, create, insert, & read back pizzas table & data"),
-			todo("Design, create, insert, & read back pizza_types table & data"),
+			todo("Insert & read back pizza_types table & data"),
+			todo("Insert & read back pizzas table & data"),
+			todo("Insert & read back order_details table & data"),
 		),
 	),
 }

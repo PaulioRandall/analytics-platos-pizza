@@ -10,6 +10,9 @@ import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
 )
 
+// TODO: Create SQLite helper library?
+// TODO: Create trackable (error) library
+
 var ErrSQLite = err.Track("SQLite database error")
 
 type sqliteDB struct {
@@ -34,7 +37,6 @@ func OpenSQLiteDatabase(file string) (*sqliteDB, error) {
 }
 
 func (db *sqliteDB) createTables() error {
-
 	sql := joinLines(
 		`CREATE TABLE metadata (`,
 		`	id          INTEGER NOT NULL PRIMARY KEY,`, // Alias for SQLite 'rowid'
@@ -43,9 +45,33 @@ func (db *sqliteDB) createTables() error {
 		`	description TEXT    NOT NULL`,
 		`);`,
 		``,
+		`CREATE TABLE pizza_types (`,
+		`	id          TEXT NOT NULL PRIMARY KEY,`,
+		`	name        TEXT NOT NULL,`,
+		`	category    TEXT NOT NULL,`,
+		`	ingredients TEXT NOT NULL`,
+		`);`,
+		``,
+		`CREATE TABLE pizzas (`,
+		`	id      TEXT NOT NULL PRIMARY KEY,`,
+		`	type_id TEXT NOT NULL,`,
+		`	size    TEXT NOT NULL,`,
+		`	price   REAL NOT NULL,`,
+		`	FOREIGN KEY(type_id) REFERENCES pizza_types(id)`,
+		`);`,
+		``,
 		`CREATE TABLE orders (`,
-		`	id        INTEGER NOT NULL PRIMARY KEY,`,
-		`	datetime  TEXT    NOT NULL`,
+		`	id       INTEGER NOT NULL PRIMARY KEY,`,
+		`	datetime TEXT    NOT NULL`,
+		`);`,
+		``,
+		`CREATE TABLE order_details (`,
+		`	id       INTEGER NOT NULL PRIMARY KEY,`,
+		`	order_id INTEGER NOT NULL,`,
+		`	pizza_id TEXT    NOT NULL,`,
+		`	quantity INTEGER NOT NULL,`,
+		`	FOREIGN KEY(order_id) REFERENCES orders(id),`,
+		`	FOREIGN KEY(pizza_id) REFERENCES pizzas(id)`,
 		`);`,
 	)
 
@@ -57,89 +83,60 @@ func (db *sqliteDB) createTables() error {
 }
 
 func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
-	sql, params := buildMetadataInsertSQL(entries)
+	rowCount := len(entries)
+	paramCount := 3
 
-	stmt, e := db.conn.Prepare(sql)
-	if e != nil {
-		return ErrInsert.TrackWrap(ErrPrepare, e)
-	}
-	defer stmt.Close()
-
-	if _, e := stmt.Exec(params...); e != nil {
-		return ErrInsert.Wrap(e)
-	}
-
-	return nil
-}
-
-func buildMetadataInsertSQL(entries []MetadataEntry) (sql string, params []any) {
-	sql = joinLines(
+	valuesSQL := buildValuesSQL(rowCount, paramCount)
+	sql := joinLines(
 		`INSERT INTO metadata (`,
 		`	table_name,`,
 		`	field_name,`,
 		`	description`,
-		`) VALUES`,
+		`) VALUES `+valuesSQL+";",
 	)
 
-	for i, v := range entries {
-		if i == 0 {
-			sql += " (?, ?, ?)"
-		} else {
-			sql += ", (?, ?, ?)"
-		}
-
+	var params []any
+	for _, v := range entries {
 		params = append(params, v.Table, v.Field, v.Description)
 	}
 
-	sql += ";"
-	return sql, params
+	if e := db.insert(sql, params); e != nil {
+		e = err.Wrap(e, "Failed inserting metadata")
+		return ErrSQLite.TrackWrap(ErrInsert, e)
+	}
+
+	return nil
 }
 
 func (db *sqliteDB) InsertOrders(orders ...Order) error {
 	for _, batch := range partition(orders, 256) {
-		if e := insertOrderBatch(db, batch); e != nil {
-			return ErrInsert.TrackWrap(ErrPrepare, e)
+		sql, params := buildBulkOrderInsertSQL(batch)
+
+		if e := db.insert(sql, params); e != nil {
+			e = err.Wrap(e, "Failed inserting orders")
+			return ErrSQLite.TrackWrap(ErrInsert, e)
 		}
 	}
 
 	return nil
 }
 
-func insertOrderBatch(db *sqliteDB, batch []Order) error {
-	sql, params := buildOrdersInsertSQL(batch)
+func buildBulkOrderInsertSQL(orders []Order) (sql string, params []any) {
+	rowCount := len(orders)
+	paramCount := 2
 
-	stmt, e := db.conn.Prepare(sql)
-	if e != nil {
-		return err.Wrap(e, "Failed to insert order batch")
-	}
-	defer stmt.Close()
-
-	if _, e := stmt.Exec(params...); e != nil {
-		return ErrInsert.Wrap(e)
-	}
-
-	return nil
-}
-
-func buildOrdersInsertSQL(orders []Order) (sql string, params []any) {
+	valuesSQL := buildValuesSQL(rowCount, paramCount)
 	sql = joinLines(
 		`INSERT INTO orders (`,
 		`	id,`,
 		`	datetime`,
-		`) VALUES`,
+		`) VALUES `+valuesSQL+";",
 	)
 
-	for i, v := range orders {
-		if i == 0 {
-			sql += " (?, ?)"
-		} else {
-			sql += ", (?, ?)"
-		}
-
+	for _, v := range orders {
 		params = append(params, v.Id, v.Datetime)
 	}
 
-	sql += ";"
 	return sql, params
 }
 
@@ -251,8 +248,51 @@ func (db *sqliteDB) Close() {
 	db.conn.Close()
 }
 
+func (db *sqliteDB) insert(sql string, params []any) error {
+	stmt, e := db.conn.Prepare(sql)
+	if e != nil {
+		return ErrInsert.TrackWrap(ErrPrepare, e)
+	}
+	defer stmt.Close()
+
+	if _, e := stmt.Exec(params...); e != nil {
+		return ErrInsert.Wrap(e)
+	}
+
+	return nil
+}
+
 func joinLines(lines ...string) string {
 	return strings.Join(lines, "\n")
+}
+
+func buildValuesSQL(rowCount, paramCount int) string {
+	sb := strings.Builder{}
+	params := buildParamsSQL(paramCount)
+
+	for i := 0; i < rowCount; i++ {
+		if i > 0 {
+			sb.WriteRune(',')
+		}
+		sb.WriteString(params)
+	}
+
+	return sb.String()
+}
+
+func buildParamsSQL(paramCount int) string {
+	sb := strings.Builder{}
+	sb.WriteRune('(')
+
+	for i := 0; i < paramCount; i++ {
+		if i > 0 {
+			sb.WriteRune(',')
+		}
+		sb.WriteRune('?')
+	}
+
+	sb.WriteRune(')')
+	return sb.String()
 }
 
 func partition[T any](items []T, batchSize int) [][]T {

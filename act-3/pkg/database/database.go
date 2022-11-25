@@ -17,6 +17,7 @@ var (
 	ErrInsert         = err.Track("Failed to execute data insert")
 	ErrQuery          = err.Track("Failed to execute query")
 	ErrResult         = err.Track("Failed to read or parse results")
+	ErrPrint          = err.Track("Failed to print database table")
 	ErrClosed         = err.Track("Can't execute requests on a closed database")
 )
 
@@ -42,34 +43,32 @@ type PlatosPizzaDatabase interface {
 }
 
 func Print(db PlatosPizzaDatabase) error {
-	printErr := err.Track("Printing database")
-
 	if e := QueryPrintMetadata(db); e != nil {
-		return printErr.Wrap(e)
+		return ErrPrint.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintOrders(db); e != nil {
-		return printErr.Wrap(e)
+		return ErrPrint.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintOrderDetails(db); e != nil {
-		return printErr.Wrap(e)
+		return ErrPrint.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintPizzas(db); e != nil {
-		return printErr.Wrap(e)
+		return ErrPrint.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintPizzaTypes(db); e != nil {
-		return printErr.Wrap(e)
+		return ErrPrint.Wrap(e)
 	}
 
 	return nil
