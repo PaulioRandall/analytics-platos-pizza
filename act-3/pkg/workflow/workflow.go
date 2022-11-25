@@ -20,7 +20,11 @@ func Execute() error {
 		return ErrWorkflow.TraceWrap(e, "Failed to insert CSV data into database")
 	}
 
-	database.Print(db) // Temp
+	// Temp
+	if e := database.Print(db); e != nil {
+		return ErrWorkflow.TraceWrap(e, "Failed to print database")
+	}
+
 	return nil
 }
 

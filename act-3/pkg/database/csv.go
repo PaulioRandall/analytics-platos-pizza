@@ -43,27 +43,26 @@ func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 		return err.Wrap(e, "Failed to read orders %q", filename)
 	}
 
+	orders := make([]Order, len(records))
 	for i, record := range records {
 		id, e := strconv.Atoi(record[0])
 		if e != nil {
 			return err.Wrap(e, "Bad order ID discovered")
 		}
 
-		datetime, e := time.Parse(time.RFC3339, record[1]+"T"+record[2]+"Z")
+		datetime, e := time.Parse(DatetimeFormat, record[1]+" "+record[2])
 		if e != nil {
 			return err.Wrap(e, "Bad order date or time discovered")
 		}
 
-		order := Order{
+		orders[i] = Order{
 			Id:       id,
 			Datetime: datetime,
 		}
+	}
 
-		if e = db.InsertOrder(order); e != nil {
-			return err.Wrap(e,
-				"Failed to insert order record at line %d", lineNumber(i),
-			)
-		}
+	if e = db.InsertOrders(orders...); e != nil {
+		return e
 	}
 
 	return nil
@@ -98,7 +97,7 @@ func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 			Quantity: quantity,
 		}
 
-		if e = db.InsertOrderDetail(orderDetail); e != nil {
+		if e = db.InsertOrderDetails(orderDetail); e != nil {
 			return err.Wrap(e,
 				"Failed to insert order detail at line %d", lineNumber(i),
 			)
@@ -127,7 +126,7 @@ func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 			Price:       price,
 		}
 
-		if e = db.InsertPizza(pizza); e != nil {
+		if e = db.InsertPizzas(pizza); e != nil {
 			return err.Wrap(e, "Failed to insert pizza at line %d", lineNumber(i))
 		}
 	}
@@ -149,7 +148,7 @@ func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 			Ingredients: record[3],
 		}
 
-		if e = db.InsertPizzaType(pizzaType); e != nil {
+		if e = db.InsertPizzaTypes(pizzaType); e != nil {
 			return err.Wrap(e,
 				"Failed to insert pizza type at line %d", lineNumber(i),
 			)

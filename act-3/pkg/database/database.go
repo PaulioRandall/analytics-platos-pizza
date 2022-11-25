@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	QueryHeadMax = 8
+	QueryHeadMax   = 8
+	DatetimeFormat = "2006-01-02 15:04:05"
 )
 
 var (
@@ -25,11 +26,11 @@ type query[T any] func() ([]T, error)
 // and information useful for analysing Plato's Pizzeria customer buying
 // habits.
 type PlatosPizzaDatabase interface {
-	InsertMetadata(MetadataEntry) error
-	InsertOrder(Order) error
-	InsertOrderDetail(OrderDetail) error
-	InsertPizza(Pizza) error
-	InsertPizzaType(PizzaType) error
+	InsertMetadata(...MetadataEntry) error
+	InsertOrders(...Order) error
+	InsertOrderDetails(...OrderDetail) error
+	InsertPizzas(...Pizza) error
+	InsertPizzaTypes(...PizzaType) error
 
 	AllMetadata() ([]MetadataEntry, error)
 	HeadOrders() ([]Order, error)

@@ -19,33 +19,43 @@ func OpenInMemoryDatabase() *inMemory {
 	return &inMemory{}
 }
 
-func (db *inMemory) InsertMetadata(entry MetadataEntry) error {
+func (db *inMemory) InsertMetadata(entries ...MetadataEntry) error {
 	return inMemoryInsert(db, func() {
-		db.metadata = append(db.metadata, entry)
+		for _, v := range entries {
+			db.metadata = append(db.metadata, v)
+		}
 	})
 }
 
-func (db *inMemory) InsertOrder(order Order) error {
+func (db *inMemory) InsertOrders(orders ...Order) error {
 	return inMemoryInsert(db, func() {
-		db.orders = append(db.orders, order)
+		for _, v := range orders {
+			db.orders = append(db.orders, v)
+		}
 	})
 }
 
-func (db *inMemory) InsertOrderDetail(orderDetail OrderDetail) error {
+func (db *inMemory) InsertOrderDetails(orderDetails ...OrderDetail) error {
 	return inMemoryInsert(db, func() {
-		db.orderDetails = append(db.orderDetails, orderDetail)
+		for _, v := range orderDetails {
+			db.orderDetails = append(db.orderDetails, v)
+		}
 	})
 }
 
-func (db *inMemory) InsertPizza(pizza Pizza) error {
+func (db *inMemory) InsertPizzas(pizzas ...Pizza) error {
 	return inMemoryInsert(db, func() {
-		db.pizzas = append(db.pizzas, pizza)
+		for _, v := range pizzas {
+			db.pizzas = append(db.pizzas, v)
+		}
 	})
 }
 
-func (db *inMemory) InsertPizzaType(pizzaType PizzaType) error {
+func (db *inMemory) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
 	return inMemoryInsert(db, func() {
-		db.pizzaTypes = append(db.pizzaTypes, pizzaType)
+		for _, v := range pizzaTypes {
+			db.pizzaTypes = append(db.pizzaTypes, v)
+		}
 	})
 }
 
