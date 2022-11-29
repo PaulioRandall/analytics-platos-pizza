@@ -1,10 +1,10 @@
 package database
 
 import (
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
-var ErrInMemory = err.Track("In-memory database error")
+var ErrInMemory = trackable.Track("In-memory database error")
 
 type inMemory struct {
 	closed       bool
@@ -106,7 +106,8 @@ func inMemoryExecute[T any](db *inMemory, q query[T]) ([]T, error) {
 
 	result, e := q()
 	if e != nil {
-		e = ErrInMemory.TrackWrap(ErrQuery, e)
+		e = ErrQuerying.Wrap(e)
+		e = ErrInMemory.Wrap(e)
 	}
 
 	return result, e

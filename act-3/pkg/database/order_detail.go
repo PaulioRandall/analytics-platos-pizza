@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 // OrderDetail represents a specific pizza type order, one or more pizzas,
@@ -35,7 +35,7 @@ func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
 	records, e := db.HeadOrderDetails()
 
 	if e != nil {
-		return err.Wrap(e, "Quering head of order_details")
+		return trackable.Wrap(e, "Quering head of order_details")
 	}
 
 	PrintOrderDetails(records)

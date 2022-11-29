@@ -7,7 +7,7 @@ tabs -2
 EXE_NAME="act-3"
 MAIN_FILE="cmd/main.go"
 
-BUILD_DIR="build"
+BUILD_DIR="bin"
 TEST_TIMEOUT="2s"
 BUILD_FLAGS=""
 #BUILD_FLAGS=-gcflags -m -ldflags "-s -w"

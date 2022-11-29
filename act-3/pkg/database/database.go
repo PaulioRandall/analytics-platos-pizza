@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 const (
@@ -12,13 +12,13 @@ const (
 )
 
 var (
-	ErrCreateOrUpdate = err.Track("Failed to execute table creation or update")
-	ErrPrepare        = err.Track("Failed to prepare statement")
-	ErrInsert         = err.Track("Failed to execute data insert")
-	ErrQuery          = err.Track("Failed to execute query")
-	ErrResult         = err.Track("Failed to read or parse results")
-	ErrPrint          = err.Track("Failed to print database table")
-	ErrClosed         = err.Track("Can't execute requests on a closed database")
+	ErrCreating  = trackable.Track("Failed to create database or tables")
+	ErrPreparing = trackable.Track("Failed to prepare database query or statement")
+	ErrInserting = trackable.Track("Failed to execute data insert into database")
+	ErrQuerying  = trackable.Track("Failed to execute query on database")
+	ErrParsing   = trackable.Track("Failed to read or parse database results")
+	ErrPrinting  = trackable.Track("Failed to print rows from database")
+	ErrClosed    = trackable.Track("Can't execute requests on a closed database")
 )
 
 type query[T any] func() ([]T, error)
@@ -44,31 +44,31 @@ type PlatosPizzaDatabase interface {
 
 func Print(db PlatosPizzaDatabase) error {
 	if e := QueryPrintMetadata(db); e != nil {
-		return ErrPrint.Wrap(e)
+		return ErrPrinting.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintOrders(db); e != nil {
-		return ErrPrint.Wrap(e)
+		return ErrPrinting.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintOrderDetails(db); e != nil {
-		return ErrPrint.Wrap(e)
+		return ErrPrinting.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintPizzas(db); e != nil {
-		return ErrPrint.Wrap(e)
+		return ErrPrinting.Wrap(e)
 	}
 
 	fmt.Println()
 
 	if e := QueryPrintPizzaTypes(db); e != nil {
-		return ErrPrint.Wrap(e)
+		return ErrPrinting.Wrap(e)
 	}
 
 	return nil

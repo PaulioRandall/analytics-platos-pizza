@@ -7,13 +7,12 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 // TODO: Create SQLite helper library?
-// TODO: Create trackable (error) library
 
-var ErrSQLite = err.Track("SQLite database error")
+var ErrSQLite = trackable.Track("SQLite database error")
 
 type sqliteDB struct {
 	conn *sql.DB
@@ -76,7 +75,7 @@ func (db *sqliteDB) createTables() error {
 	)
 
 	if _, e := db.conn.Exec(sql); e != nil {
-		return ErrCreateOrUpdate.TraceWrap(e, "Could not create tables")
+		return ErrCreating.Wrap(e)
 	}
 
 	return nil
@@ -101,8 +100,7 @@ func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 	}
 
 	if e := db.insert(sql, params); e != nil {
-		e = err.Wrap(e, "Failed inserting metadata")
-		return ErrSQLite.TrackWrap(ErrInsert, e)
+		return ErrSQLite.Wrap(e)
 	}
 
 	return nil
@@ -113,8 +111,7 @@ func (db *sqliteDB) InsertOrders(orders ...Order) error {
 		sql, params := buildBulkOrderInsertSQL(batch)
 
 		if e := db.insert(sql, params); e != nil {
-			e = err.Wrap(e, "Failed inserting orders")
-			return ErrSQLite.TrackWrap(ErrInsert, e)
+			return ErrSQLite.Wrap(e)
 		}
 	}
 
@@ -164,7 +161,7 @@ func (db *sqliteDB) AllMetadata() ([]MetadataEntry, error) {
 
 	rows, e := db.conn.Query(sql)
 	if e != nil {
-		return nil, ErrQuery.Wrap(e)
+		return nil, ErrQuerying.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -179,7 +176,7 @@ func scanMetadataRows(rows *sql.Rows) ([]MetadataEntry, error) {
 
 		e := rows.Scan(&entry.Table, &entry.Field, &entry.Description)
 		if e != nil {
-			return nil, ErrResult.Wrap(e)
+			return nil, ErrParsing.Wrap(e)
 		}
 
 		results = append(results, entry)
@@ -202,7 +199,7 @@ func (db *sqliteDB) HeadOrders() ([]Order, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuery.Wrap(e)
+		return nil, ErrQuerying.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -218,12 +215,12 @@ func scanOrderRows(rows *sql.Rows) ([]Order, error) {
 
 		e := rows.Scan(&order.Id, &datetimeStr)
 		if e != nil {
-			return nil, ErrResult.Wrap(e)
+			return nil, ErrParsing.Wrap(e)
 		}
 
 		order.Datetime, e = time.Parse(DatetimeFormat, datetimeStr)
 		if e != nil {
-			return nil, ErrResult.Wrap(e)
+			return nil, ErrParsing.Wrap(e)
 		}
 
 		results = append(results, order)
@@ -251,12 +248,13 @@ func (db *sqliteDB) Close() {
 func (db *sqliteDB) insert(sql string, params []any) error {
 	stmt, e := db.conn.Prepare(sql)
 	if e != nil {
-		return ErrInsert.TrackWrap(ErrPrepare, e)
+		e = ErrPreparing.Wrap(e)
+		return ErrInserting.Wrap(e)
 	}
 	defer stmt.Close()
 
 	if _, e := stmt.Exec(params...); e != nil {
-		return ErrInsert.Wrap(e)
+		return ErrInserting.Wrap(e)
 	}
 
 	return nil

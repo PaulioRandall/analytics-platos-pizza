@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 type Pizza struct {
@@ -32,7 +32,7 @@ func QueryPrintPizzas(db PlatosPizzaDatabase) error {
 	records, e := db.HeadPizzas()
 
 	if e != nil {
-		return err.Wrap(e, "Quering head of pizzas")
+		return trackable.Wrap(e, "Quering head of pizzas")
 	}
 
 	PrintPizzas(records)

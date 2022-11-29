@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 type MetadataEntry struct {
@@ -24,7 +24,7 @@ func QueryPrintMetadata(db PlatosPizzaDatabase) error {
 	records, e := db.AllMetadata()
 
 	if e != nil {
-		return err.Wrap(e, "Quering all metadata")
+		return trackable.Wrap(e, "Quering all metadata")
 	}
 
 	PrintMetadata(records)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 // Order represents an order of pizzas, one or many pizzas per order
@@ -29,7 +29,7 @@ func QueryPrintOrders(db PlatosPizzaDatabase) error {
 	records, e := db.HeadOrders()
 
 	if e != nil {
-		return err.Wrap(e, "Quering head of orders")
+		return trackable.Wrap(e, "Quering head of orders")
 	}
 
 	PrintOrders(records)

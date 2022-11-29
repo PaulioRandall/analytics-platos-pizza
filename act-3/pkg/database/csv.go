@@ -6,17 +6,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/err"
+	"github.com/PaulioRandall/trackable-go"
 )
 
 var (
-	ErrCSVFile = err.Track("Error handling CSV file")
+	ErrCSVFile = trackable.Track("Error handling CSV file")
 )
 
 func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return err.Wrap(e, "Failed to read metadata %q", filename)
+		return trackable.Wrap(e, "Failed to read metadata %q", filename)
 	}
 
 	for i, record := range records {
@@ -28,7 +28,7 @@ func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 
 		e := db.InsertMetadata(entry)
 		if e != nil {
-			return err.Wrap(e,
+			return trackable.Wrap(e,
 				"Failed to insert metadata record at line %d", lineNumber(i),
 			)
 		}
@@ -40,19 +40,19 @@ func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return err.Wrap(e, "Failed to read orders %q", filename)
+		return trackable.Wrap(e, "Failed to read orders %q", filename)
 	}
 
 	orders := make([]Order, len(records))
 	for i, record := range records {
 		id, e := strconv.Atoi(record[0])
 		if e != nil {
-			return err.Wrap(e, "Bad order ID discovered")
+			return trackable.Wrap(e, "Bad order ID discovered")
 		}
 
 		datetime, e := time.Parse(DatetimeFormat, record[1]+" "+record[2])
 		if e != nil {
-			return err.Wrap(e, "Bad order date or time discovered")
+			return trackable.Wrap(e, "Bad order date or time discovered")
 		}
 
 		orders[i] = Order{
@@ -71,23 +71,23 @@ func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return err.Wrap(e, "Failed to read order details %q", filename)
+		return trackable.Wrap(e, "Failed to read order details %q", filename)
 	}
 
 	for i, record := range records {
 		id, e := strconv.Atoi(record[0])
 		if e != nil {
-			return err.Wrap(e, "Bad order details ID discovered")
+			return trackable.Wrap(e, "Bad order details ID discovered")
 		}
 
 		orderId, e := strconv.Atoi(record[1])
 		if e != nil {
-			return err.Wrap(e, "Bad order ID discovered")
+			return trackable.Wrap(e, "Bad order ID discovered")
 		}
 
 		quantity, e := strconv.Atoi(record[3])
 		if e != nil {
-			return err.Wrap(e, "Bad quantity value discovered")
+			return trackable.Wrap(e, "Bad quantity value discovered")
 		}
 
 		orderDetail := OrderDetail{
@@ -98,7 +98,7 @@ func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertOrderDetails(orderDetail); e != nil {
-			return err.Wrap(e,
+			return trackable.Wrap(e,
 				"Failed to insert order detail at line %d", lineNumber(i),
 			)
 		}
@@ -110,13 +110,13 @@ func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return err.Wrap(e, "Failed to read pizzas %q", filename)
+		return trackable.Wrap(e, "Failed to read pizzas %q", filename)
 	}
 
 	for i, record := range records {
 		price, e := strconv.ParseFloat(record[3], 64)
 		if e != nil {
-			return err.Wrap(e, "Bad price value discovered")
+			return trackable.Wrap(e, "Bad price value discovered")
 		}
 
 		pizza := Pizza{
@@ -127,7 +127,7 @@ func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizzas(pizza); e != nil {
-			return err.Wrap(e, "Failed to insert pizza at line %d", lineNumber(i))
+			return trackable.Wrap(e, "Failed to insert pizza at line %d", lineNumber(i))
 		}
 	}
 
@@ -137,7 +137,7 @@ func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return err.Wrap(e, "Failed to read pizza types %q", filename)
+		return trackable.Wrap(e, "Failed to read pizza types %q", filename)
 	}
 
 	for i, record := range records {
@@ -149,7 +149,7 @@ func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizzaTypes(pizzaType); e != nil {
-			return err.Wrap(e,
+			return trackable.Wrap(e,
 				"Failed to insert pizza type at line %d", lineNumber(i),
 			)
 		}
@@ -167,7 +167,7 @@ func lineNumber(i int) int {
 func readCSV(filename string) ([][]string, error) {
 	f, e := os.Open(filename)
 	if e != nil {
-		return nil, ErrCSVFile.TraceWrap(e, "Could not open file %q", filename)
+		return nil, ErrCSVFile.BecauseOf(e, "Could not open file %q", filename)
 	}
 	defer f.Close()
 
@@ -176,7 +176,7 @@ func readCSV(filename string) ([][]string, error) {
 	records = records[1:] // Remove header
 
 	if e != nil {
-		return nil, ErrCSVFile.TraceWrap(e, "Could not read file %q", filename)
+		return nil, ErrCSVFile.BecauseOf(e, "Could not read file %q", filename)
 	}
 
 	return records, nil
