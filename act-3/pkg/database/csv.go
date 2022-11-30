@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/PaulioRandall/trackable-go"
+	"github.com/PaulioRandall/trackable"
 )
 
 var (

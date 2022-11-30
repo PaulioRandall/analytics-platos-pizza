@@ -1,7 +1,7 @@
 package workflow
 
 import (
-	"github.com/PaulioRandall/trackable-go"
+	"github.com/PaulioRandall/trackable"
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 )
@@ -11,11 +11,13 @@ var (
 )
 
 func Execute() error {
-	db, e := database.OpenSQLiteDatabase("./bin/platos-pizza.sqlite")
-	if e != nil {
-		return ErrExeWorkflow.Wrap(e)
-	}
-	defer db.Close()
+	//db, e := database.OpenSQLiteDatabase("./bin/platos-pizza.sqlite")
+	//if e != nil {
+	//	return ErrExeWorkflow.Wrap(e)
+	//}
+	//defer db.Close()
+
+	db := database.OpenInMemoryDatabase()
 
 	if e := insertCSVData(db); e != nil {
 		return ErrExeWorkflow.Wrap(e)

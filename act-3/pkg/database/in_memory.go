@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/PaulioRandall/trackable-go"
+	"github.com/PaulioRandall/trackable"
 )
 
 var ErrInMemory = trackable.Track("In-memory database error")
@@ -61,32 +61,24 @@ func (db *inMemory) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
 
 func (db *inMemory) AllMetadata() ([]MetadataEntry, error) {
 	return inMemoryExecute(db, func() ([]MetadataEntry, error) {
-		return db.metadata[:], nil
+		return db.metadata, nil
 	})
 }
 
 func (db *inMemory) HeadOrders() ([]Order, error) {
-	return inMemoryExecute(db, func() ([]Order, error) {
-		return inMemoryHead(db.orders)
-	})
+	return inMemoryHead(db, db.orders)
 }
 
 func (db *inMemory) HeadOrderDetails() ([]OrderDetail, error) {
-	return inMemoryExecute(db, func() ([]OrderDetail, error) {
-		return inMemoryHead(db.orderDetails)
-	})
+	return inMemoryHead(db, db.orderDetails)
 }
 
 func (db *inMemory) HeadPizzas() ([]Pizza, error) {
-	return inMemoryExecute(db, func() ([]Pizza, error) {
-		return inMemoryHead(db.pizzas)
-	})
+	return inMemoryHead(db, db.pizzas)
 }
 
 func (db *inMemory) HeadPizzaTypes() ([]PizzaType, error) {
-	return inMemoryExecute(db, func() ([]PizzaType, error) {
-		return inMemoryHead(db.pizzaTypes)
-	})
+	return inMemoryHead(db, db.pizzaTypes)
 }
 
 func (db *inMemory) Close() {
@@ -97,6 +89,15 @@ func (db *inMemory) Close() {
 	db.orderDetails = nil
 	db.pizzas = nil
 	db.pizzaTypes = nil
+}
+
+func inMemoryHead[T any](db *inMemory, items []T) ([]T, error) {
+	return inMemoryExecute(db, func() ([]T, error) {
+		if len(items) < QueryHeadMax {
+			return items, nil
+		}
+		return items[0:QueryHeadMax], nil
+	})
 }
 
 func inMemoryExecute[T any](db *inMemory, q query[T]) ([]T, error) {
@@ -120,11 +121,4 @@ func inMemoryInsert(db *inMemory, f func()) error {
 
 	f()
 	return nil
-}
-
-func inMemoryHead[T any](items []T) ([]T, error) {
-	if len(items) < QueryHeadMax {
-		return items[:], nil
-	}
-	return items[0:QueryHeadMax], nil
 }

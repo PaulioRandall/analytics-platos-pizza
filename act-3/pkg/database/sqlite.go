@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/PaulioRandall/trackable-go"
+	"github.com/PaulioRandall/trackable"
 )
 
 // TODO: Create SQLite helper library?

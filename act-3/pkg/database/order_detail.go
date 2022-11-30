@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/trackable-go"
+	"github.com/PaulioRandall/trackable"
 )
 
 // OrderDetail represents a specific pizza type order, one or more pizzas,
