@@ -1,11 +1,15 @@
-package database
+package sqlite
 
 import (
 	"database/sql"
 	"time"
+
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 )
 
-func (db *sqliteDB) AllMetadata() ([]MetadataEntry, error) {
+const QueryHeadMax = database.QueryHeadMax
+
+func (db *sqliteDB) AllMetadata() ([]database.MetadataEntry, error) {
 	sql := joinLines(
 		`SELECT`,
 		`	table_name,`,
@@ -17,22 +21,22 @@ func (db *sqliteDB) AllMetadata() ([]MetadataEntry, error) {
 
 	rows, e := db.conn.Query(sql)
 	if e != nil {
-		return nil, ErrQuerying.Wrap(e)
+		return nil, database.ErrQuerying.Wrap(e)
 	}
 	defer rows.Close()
 
 	return scanMetadataRows(rows)
 }
 
-func scanMetadataRows(rows *sql.Rows) ([]MetadataEntry, error) {
-	var results []MetadataEntry
+func scanMetadataRows(rows *sql.Rows) ([]database.MetadataEntry, error) {
+	var results []database.MetadataEntry
 
 	for rows.Next() {
-		var entry MetadataEntry
+		var entry database.MetadataEntry
 
 		e := rows.Scan(&entry.Table, &entry.Field, &entry.Description)
 		if e != nil {
-			return nil, ErrParsing.Wrap(e)
+			return nil, database.ErrParsing.Wrap(e)
 		}
 
 		results = append(results, entry)
@@ -41,7 +45,7 @@ func scanMetadataRows(rows *sql.Rows) ([]MetadataEntry, error) {
 	return results, nil
 }
 
-func (db *sqliteDB) HeadOrders() ([]Order, error) {
+func (db *sqliteDB) HeadOrders() ([]database.Order, error) {
 	sql := joinLines(
 		`SELECT`,
 		`	id,`,
@@ -55,28 +59,28 @@ func (db *sqliteDB) HeadOrders() ([]Order, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.BecauseOf(e, "Querying orders")
+		return nil, database.ErrQuerying.BecauseOf(e, "Querying orders")
 	}
 	defer rows.Close()
 
 	return scanOrderRows(rows)
 }
 
-func scanOrderRows(rows *sql.Rows) ([]Order, error) {
-	var results []Order
+func scanOrderRows(rows *sql.Rows) ([]database.Order, error) {
+	var results []database.Order
 
 	for rows.Next() {
-		var order Order
+		var order database.Order
 		var datetimeStr string
 
 		e := rows.Scan(&order.Id, &datetimeStr)
 		if e != nil {
-			return nil, ErrParsing.Wrap(e)
+			return nil, database.ErrParsing.Wrap(e)
 		}
 
-		order.Datetime, e = time.Parse(DatetimeFormat, datetimeStr)
+		order.Datetime, e = time.Parse(database.DatetimeFormat, datetimeStr)
 		if e != nil {
-			return nil, ErrParsing.Wrap(e)
+			return nil, database.ErrParsing.Wrap(e)
 		}
 
 		results = append(results, order)
@@ -85,7 +89,7 @@ func scanOrderRows(rows *sql.Rows) ([]Order, error) {
 	return results, nil
 }
 
-func (db *sqliteDB) HeadOrderDetails() ([]OrderDetail, error) {
+func (db *sqliteDB) HeadOrderDetails() ([]database.OrderDetail, error) {
 	sql := joinLines(
 		`SELECT`,
 		`	id,`,
@@ -99,18 +103,18 @@ func (db *sqliteDB) HeadOrderDetails() ([]OrderDetail, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.BecauseOf(e, "Querying order details")
+		return nil, database.ErrQuerying.BecauseOf(e, "Querying order details")
 	}
 	defer rows.Close()
 
 	return scanOrderDetailRows(rows)
 }
 
-func scanOrderDetailRows(rows *sql.Rows) ([]OrderDetail, error) {
-	var results []OrderDetail
+func scanOrderDetailRows(rows *sql.Rows) ([]database.OrderDetail, error) {
+	var results []database.OrderDetail
 
 	for rows.Next() {
-		var orderDetail OrderDetail
+		var orderDetail database.OrderDetail
 
 		e := rows.Scan(
 			&orderDetail.Id,
@@ -120,7 +124,7 @@ func scanOrderDetailRows(rows *sql.Rows) ([]OrderDetail, error) {
 		)
 
 		if e != nil {
-			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+			return nil, database.ErrParsing.BecauseOf(e, "Row scanning failed")
 		}
 
 		results = append(results, orderDetail)
@@ -129,7 +133,7 @@ func scanOrderDetailRows(rows *sql.Rows) ([]OrderDetail, error) {
 	return results, nil
 }
 
-func (db *sqliteDB) HeadPizzas() ([]Pizza, error) {
+func (db *sqliteDB) HeadPizzas() ([]database.Pizza, error) {
 	sql := joinLines(
 		`SELECT`,
 		`	id,`,
@@ -143,18 +147,18 @@ func (db *sqliteDB) HeadPizzas() ([]Pizza, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.BecauseOf(e, "Querying pizzas")
+		return nil, database.ErrQuerying.BecauseOf(e, "Querying pizzas")
 	}
 	defer rows.Close()
 
 	return scanPizzaRows(rows)
 }
 
-func scanPizzaRows(rows *sql.Rows) ([]Pizza, error) {
-	var results []Pizza
+func scanPizzaRows(rows *sql.Rows) ([]database.Pizza, error) {
+	var results []database.Pizza
 
 	for rows.Next() {
-		var pizza Pizza
+		var pizza database.Pizza
 
 		e := rows.Scan(
 			&pizza.Id,
@@ -164,7 +168,7 @@ func scanPizzaRows(rows *sql.Rows) ([]Pizza, error) {
 		)
 
 		if e != nil {
-			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+			return nil, database.ErrParsing.BecauseOf(e, "Row scanning failed")
 		}
 
 		results = append(results, pizza)
@@ -173,7 +177,7 @@ func scanPizzaRows(rows *sql.Rows) ([]Pizza, error) {
 	return results, nil
 }
 
-func (db *sqliteDB) HeadPizzaTypes() ([]PizzaType, error) {
+func (db *sqliteDB) HeadPizzaTypes() ([]database.PizzaType, error) {
 	sql := joinLines(
 		`SELECT`,
 		`	id,`,
@@ -187,18 +191,18 @@ func (db *sqliteDB) HeadPizzaTypes() ([]PizzaType, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.BecauseOf(e, "Querying pizza types")
+		return nil, database.ErrQuerying.BecauseOf(e, "Querying pizza types")
 	}
 	defer rows.Close()
 
 	return scanPizzaTypeRows(rows)
 }
 
-func scanPizzaTypeRows(rows *sql.Rows) ([]PizzaType, error) {
-	var results []PizzaType
+func scanPizzaTypeRows(rows *sql.Rows) ([]database.PizzaType, error) {
+	var results []database.PizzaType
 
 	for rows.Next() {
-		var pizzaType PizzaType
+		var pizzaType database.PizzaType
 
 		e := rows.Scan(
 			&pizzaType.Id,
@@ -208,7 +212,7 @@ func scanPizzaTypeRows(rows *sql.Rows) ([]PizzaType, error) {
 		)
 
 		if e != nil {
-			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+			return nil, database.ErrParsing.BecauseOf(e, "Row scanning failed")
 		}
 
 		results = append(results, pizzaType)

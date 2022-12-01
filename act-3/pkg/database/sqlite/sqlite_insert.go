@@ -1,7 +1,9 @@
-package database
+package sqlite
 
 import (
 	"strings"
+
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 )
 
 // TODO: Convert to using transactions for bulk inserts
@@ -10,7 +12,7 @@ type sqlBuilder[T any] func([]T) (sql string, params []any)
 
 const insertBatchSize = 256
 
-func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
+func (db *sqliteDB) InsertMetadata(entries ...database.MetadataEntry) error {
 	rowCount := len(entries)
 	paramCount := 3
 
@@ -35,8 +37,8 @@ func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 	return nil
 }
 
-func (db *sqliteDB) InsertOrders(orders ...Order) error {
-	buildOrdersInsertSQL := func(batch []Order) (sql string, params []any) {
+func (db *sqliteDB) InsertOrders(orders ...database.Order) error {
+	buildOrdersInsertSQL := func(batch []database.Order) (sql string, params []any) {
 		rowCount := len(batch)
 		paramCount := 2
 
@@ -58,8 +60,8 @@ func (db *sqliteDB) InsertOrders(orders ...Order) error {
 	return sqlitePartitionedInsert(db, orders, buildOrdersInsertSQL)
 }
 
-func (db *sqliteDB) InsertOrderDetails(orderDetails ...OrderDetail) error {
-	buildOrderDetailsInsertSQL := func(batch []OrderDetail) (sql string, params []any) {
+func (db *sqliteDB) InsertOrderDetails(orderDetails ...database.OrderDetail) error {
+	buildOrderDetailsInsertSQL := func(batch []database.OrderDetail) (sql string, params []any) {
 		rowCount := len(batch)
 		paramCount := 4
 
@@ -83,8 +85,8 @@ func (db *sqliteDB) InsertOrderDetails(orderDetails ...OrderDetail) error {
 	return sqlitePartitionedInsert(db, orderDetails, buildOrderDetailsInsertSQL)
 }
 
-func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
-	buildPizzasInsertSQL := func(batch []Pizza) (sql string, params []any) {
+func (db *sqliteDB) InsertPizzas(pizzas ...database.Pizza) error {
+	buildPizzasInsertSQL := func(batch []database.Pizza) (sql string, params []any) {
 		rowCount := len(batch)
 		paramCount := 4
 
@@ -108,8 +110,8 @@ func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
 	return sqlitePartitionedInsert(db, pizzas, buildPizzasInsertSQL)
 }
 
-func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
-	buildPizzaTypesInsertSQL := func(batch []PizzaType) (sql string, params []any) {
+func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...database.PizzaType) error {
+	buildPizzaTypesInsertSQL := func(batch []database.PizzaType) (sql string, params []any) {
 		rowCount := len(batch)
 		paramCount := 4
 
@@ -136,13 +138,13 @@ func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
 func (db *sqliteDB) insert(sql string, params []any) error {
 	stmt, e := db.conn.Prepare(sql)
 	if e != nil {
-		e = ErrPreparing.Wrap(e)
-		return ErrInserting.Wrap(e)
+		e = database.ErrPreparing.Wrap(e)
+		return database.ErrInserting.Wrap(e)
 	}
 	defer stmt.Close()
 
 	if _, e := stmt.Exec(params...); e != nil {
-		return ErrInserting.Wrap(e)
+		return database.ErrInserting.Wrap(e)
 	}
 
 	return nil

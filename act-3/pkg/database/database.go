@@ -21,8 +21,6 @@ var (
 	ErrClosed    = trackable.Track("Can't execute requests on a closed database")
 )
 
-type query[T any] func() ([]T, error)
-
 // PlatosPizzaDatabase represents an interface to a database of orders, pizzas,
 // and information useful for analysing Plato's Pizzeria customer buying
 // habits.

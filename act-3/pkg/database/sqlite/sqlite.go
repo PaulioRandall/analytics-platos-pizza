@@ -1,4 +1,4 @@
-package database
+package sqlite
 
 import (
 	"database/sql"
@@ -7,6 +7,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/PaulioRandall/trackable"
+
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 )
 
 // TODO: Create SQLite helper library?
@@ -33,7 +35,7 @@ type sqliteDB struct {
 	conn *sql.DB
 }
 
-func OpenSQLiteDatabase(file string) (*sqliteDB, error) {
+func OpenDatabase(file string) (*sqliteDB, error) {
 	fileURL := file + "?" + strings.Join(sqlitePragma, "&")
 
 	conn, e := sql.Open("sqlite3", fileURL)
@@ -92,7 +94,7 @@ func (db *sqliteDB) createTables() error {
 	)
 
 	if _, e := db.conn.Exec(sql); e != nil {
-		return ErrCreating.Wrap(e)
+		return database.ErrCreating.Wrap(e)
 	}
 
 	return nil

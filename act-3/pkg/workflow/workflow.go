@@ -4,6 +4,7 @@ import (
 	"github.com/PaulioRandall/trackable"
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database/sqlite"
 )
 
 var (
@@ -11,7 +12,7 @@ var (
 )
 
 func Execute() error {
-	db, e := database.OpenSQLiteDatabase("./bin/platos-pizza.sqlite")
+	db, e := sqlite.OpenDatabase("./bin/platos-pizza.sqlite")
 	if e != nil {
 		return ErrExeWorkflow.Wrap(e)
 	}
