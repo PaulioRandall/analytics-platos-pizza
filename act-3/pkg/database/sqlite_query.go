@@ -55,7 +55,7 @@ func (db *sqliteDB) HeadOrders() ([]Order, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.Wrap(e)
+		return nil, ErrQuerying.BecauseOf(e, "Querying orders")
 	}
 	defer rows.Close()
 
@@ -90,7 +90,47 @@ func (db *sqliteDB) HeadOrderDetails() ([]OrderDetail, error) {
 }
 
 func (db *sqliteDB) HeadPizzas() ([]Pizza, error) {
-	return nil, nil
+	sql := joinLines(
+		`SELECT`,
+		`	id,`,
+		`	type_id,`,
+		`	size,`,
+		`	price`,
+		`FROM`,
+		`	pizzas`,
+		`LIMIT ?;`,
+	)
+
+	rows, e := db.conn.Query(sql, QueryHeadMax)
+	if e != nil {
+		return nil, ErrQuerying.BecauseOf(e, "Querying pizzas")
+	}
+	defer rows.Close()
+
+	return scanPizzaRows(rows)
+}
+
+func scanPizzaRows(rows *sql.Rows) ([]Pizza, error) {
+	var results []Pizza
+
+	for rows.Next() {
+		var pizza Pizza
+
+		e := rows.Scan(
+			&pizza.Id,
+			&pizza.TypeId,
+			&pizza.Size,
+			&pizza.Price,
+		)
+
+		if e != nil {
+			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+		}
+
+		results = append(results, pizza)
+	}
+
+	return results, nil
 }
 
 func (db *sqliteDB) HeadPizzaTypes() ([]PizzaType, error) {
@@ -107,7 +147,7 @@ func (db *sqliteDB) HeadPizzaTypes() ([]PizzaType, error) {
 
 	rows, e := db.conn.Query(sql, QueryHeadMax)
 	if e != nil {
-		return nil, ErrQuerying.Wrap(e)
+		return nil, ErrQuerying.BecauseOf(e, "Querying pizza types")
 	}
 	defer rows.Close()
 

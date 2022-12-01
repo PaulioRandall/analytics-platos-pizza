@@ -32,26 +32,26 @@ func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 }
 
 func (db *sqliteDB) InsertOrders(orders ...Order) error {
-	return sqlitePartitionedInsert(db, orders, buildOrdersInsertSQL)
-}
+	buildOrdersInsertSQL := func(batch []Order) (sql string, params []any) {
+		rowCount := len(batch)
+		paramCount := 2
 
-func buildOrdersInsertSQL(orders []Order) (sql string, params []any) {
-	rowCount := len(orders)
-	paramCount := 2
+		valuesSQL := buildValuesSQL(rowCount, paramCount)
+		sql = joinLines(
+			`INSERT INTO orders (`,
+			`	id,`,
+			`	datetime`,
+			`) VALUES `+valuesSQL+";",
+		)
 
-	valuesSQL := buildValuesSQL(rowCount, paramCount)
-	sql = joinLines(
-		`INSERT INTO orders (`,
-		`	id,`,
-		`	datetime`,
-		`) VALUES `+valuesSQL+";",
-	)
+		for _, v := range batch {
+			params = append(params, v.Id, v.Datetime)
+		}
 
-	for _, v := range orders {
-		params = append(params, v.Id, v.Datetime)
+		return sql, params
 	}
 
-	return sql, params
+	return sqlitePartitionedInsert(db, orders, buildOrdersInsertSQL)
 }
 
 func (db *sqliteDB) InsertOrderDetails(orderDetails ...OrderDetail) error {
@@ -59,32 +59,53 @@ func (db *sqliteDB) InsertOrderDetails(orderDetails ...OrderDetail) error {
 }
 
 func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
-	return nil
+	buildPizzasInsertSQL := func(batch []Pizza) (sql string, params []any) {
+		rowCount := len(batch)
+		paramCount := 4
+
+		valuesSQL := buildValuesSQL(rowCount, paramCount)
+		sql = joinLines(
+			`INSERT INTO pizzas (`,
+			`	id,`,
+			`	type_id,`,
+			`	size,`,
+			`	price`,
+			`) VALUES `+valuesSQL+";",
+		)
+
+		for _, v := range batch {
+			params = append(params, v.Id, v.TypeId, v.Size, v.Price)
+		}
+
+		return sql, params
+	}
+
+	return sqlitePartitionedInsert(db, pizzas, buildPizzasInsertSQL)
 }
 
 func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
-	return sqlitePartitionedInsert(db, pizzaTypes, buildPizzaTypesInsertSQL)
-}
+	buildPizzaTypesInsertSQL := func(batch []PizzaType) (sql string, params []any) {
+		rowCount := len(batch)
+		paramCount := 4
 
-func buildPizzaTypesInsertSQL(pizzaTypes []PizzaType) (sql string, params []any) {
-	rowCount := len(pizzaTypes)
-	paramCount := 4
+		valuesSQL := buildValuesSQL(rowCount, paramCount)
+		sql = joinLines(
+			`INSERT INTO pizza_types (`,
+			`	id,`,
+			`	name,`,
+			`	category,`,
+			`	ingredients`,
+			`) VALUES `+valuesSQL+";",
+		)
 
-	valuesSQL := buildValuesSQL(rowCount, paramCount)
-	sql = joinLines(
-		`INSERT INTO pizza_types (`,
-		`	id,`,
-		`	name,`,
-		`	category,`,
-		`	ingredients`,
-		`) VALUES `+valuesSQL+";",
-	)
+		for _, v := range batch {
+			params = append(params, v.Id, v.Name, v.Category, v.Ingredients)
+		}
 
-	for _, v := range pizzaTypes {
-		params = append(params, v.Id, v.Name, v.Category, v.Ingredients)
+		return sql, params
 	}
 
-	return sql, params
+	return sqlitePartitionedInsert(db, pizzaTypes, buildPizzaTypesInsertSQL)
 }
 
 func (db *sqliteDB) insert(sql string, params []any) error {

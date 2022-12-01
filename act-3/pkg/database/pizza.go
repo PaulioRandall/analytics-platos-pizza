@@ -11,7 +11,7 @@ type Pizza struct {
 	Id string
 
 	// Foreign key that ties each pizza to its broader pizza type
-	PizzaTypeId string
+	TypeId string
 
 	// Size of the pizza (Small, Medium, Large, X Large, or XX Large)
 	Size string
@@ -22,9 +22,9 @@ type Pizza struct {
 
 func PrintPizzas(pizzas []Pizza) {
 	fmt.Println("[Pizzas]")
-	fmt.Println(`"ID", "Pizza Type ID", "Size", "Price"`)
+	fmt.Println(`"ID", "Type ID", "Size", "Price"`)
 	for _, v := range pizzas {
-		fmt.Printf("%q, %q, %q, %.2f\n", v.Id, v.PizzaTypeId, v.Size, v.Price)
+		fmt.Printf("%q, %q, %q, %.2f\n", v.Id, v.TypeId, v.Size, v.Price)
 	}
 }
 
@@ -32,7 +32,7 @@ func QueryPrintPizzas(db PlatosPizzaDatabase) error {
 	records, e := db.HeadPizzas()
 
 	if e != nil {
-		return trackable.Wrap(e, "Quering head of pizzas")
+		return trackable.WrapAtInterface(e, "database.QueryPrintPizzas")
 	}
 
 	PrintPizzas(records)

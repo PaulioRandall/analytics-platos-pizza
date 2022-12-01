@@ -120,10 +120,10 @@ func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		pizza := Pizza{
-			Id:          record[0],
-			PizzaTypeId: record[1],
-			Size:        record[2],
-			Price:       price,
+			Id:     record[0],
+			TypeId: record[1],
+			Size:   record[2],
+			Price:  price,
 		}
 
 		if e = db.InsertPizzas(pizza); e != nil {

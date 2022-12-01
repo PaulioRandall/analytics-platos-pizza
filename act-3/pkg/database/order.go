@@ -29,7 +29,7 @@ func QueryPrintOrders(db PlatosPizzaDatabase) error {
 	records, e := db.HeadOrders()
 
 	if e != nil {
-		return trackable.Wrap(e, "Quering head of orders")
+		return trackable.WrapAtInterface(e, "database.QueryPrintOrders")
 	}
 
 	PrintOrders(records)

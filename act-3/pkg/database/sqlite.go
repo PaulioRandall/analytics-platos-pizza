@@ -11,7 +11,7 @@ import (
 
 // TODO: Create SQLite helper library?
 
-var ErrSQLite = trackable.Track("SQLite database error")
+var ErrSQLite = trackable.Interface("SQLite database error")
 
 type sqliteDB struct {
 	conn *sql.DB

@@ -35,7 +35,7 @@ func QueryPrintPizzaTypes(db PlatosPizzaDatabase) error {
 	records, e := db.HeadPizzaTypes()
 
 	if e != nil {
-		return trackable.Wrap(e, "Quering head of pizza types")
+		return trackable.WrapAtInterface(e, "database.QueryPrintPizzaTypes")
 	}
 
 	PrintPizzaTypes(records)

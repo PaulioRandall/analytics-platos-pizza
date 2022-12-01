@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/PaulioRandall/trackable"
+
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/workflow"
 )
 
@@ -12,7 +14,7 @@ func main() {
 	fmt.Println()
 
 	if e := workflow.Execute(); e != nil {
-		println("ERROR:\n ", e.Error())
+		trackable.Debug(e)
 		os.Exit(1)
 	}
 
@@ -31,8 +33,6 @@ func printArgs() {
 var todos = []task{
 	todo("Create SQLite implementation of the database interface").breakdown(
 		todo("Add the tables & data:").breakdown(
-			todo("Insert & read back pizza_types table & data"),
-			todo("Insert & read back pizzas table & data"),
 			todo("Insert & read back order_details table & data"),
 		),
 	),
