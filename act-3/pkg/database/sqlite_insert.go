@@ -4,6 +4,8 @@ import (
 	"strings"
 )
 
+type sqlBuilder[T any] func([]T) (sql string, params []any)
+
 func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 	rowCount := len(entries)
 	paramCount := 3
@@ -30,15 +32,7 @@ func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 }
 
 func (db *sqliteDB) InsertOrders(orders ...Order) error {
-	for _, batch := range partition(orders, 256) {
-		sql, params := buildOrdersInsertSQL(batch)
-
-		if e := db.insert(sql, params); e != nil {
-			return ErrSQLite.Wrap(e)
-		}
-	}
-
-	return nil
+	return sqlitePartitionedInsert(db, orders, buildOrdersInsertSQL)
 }
 
 func buildOrdersInsertSQL(orders []Order) (sql string, params []any) {
@@ -69,15 +63,7 @@ func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
 }
 
 func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
-	for _, batch := range partition(pizzaTypes, 256) {
-		sql, params := buildPizzaTypesInsertSQL(batch)
-
-		if e := db.insert(sql, params); e != nil {
-			return ErrSQLite.Wrap(e)
-		}
-	}
-
-	return nil
+	return sqlitePartitionedInsert(db, pizzaTypes, buildPizzaTypesInsertSQL)
 }
 
 func buildPizzaTypesInsertSQL(pizzaTypes []PizzaType) (sql string, params []any) {
@@ -111,6 +97,18 @@ func (db *sqliteDB) insert(sql string, params []any) error {
 
 	if _, e := stmt.Exec(params...); e != nil {
 		return ErrInserting.Wrap(e)
+	}
+
+	return nil
+}
+
+func sqlitePartitionedInsert[T any](db *sqliteDB, items []T, buildInsertSQL sqlBuilder[T]) error {
+	for _, batch := range partition(items, 256) {
+		sql, params := buildInsertSQL(batch)
+
+		if e := db.insert(sql, params); e != nil {
+			return ErrSQLite.Wrap(e)
+		}
 	}
 
 	return nil
