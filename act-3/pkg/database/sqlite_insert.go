@@ -4,7 +4,11 @@ import (
 	"strings"
 )
 
+// TODO: Convert to using transactions for bulk inserts
+
 type sqlBuilder[T any] func([]T) (sql string, params []any)
+
+const insertBatchSize = 256
 
 func (db *sqliteDB) InsertMetadata(entries ...MetadataEntry) error {
 	rowCount := len(entries)
@@ -55,7 +59,28 @@ func (db *sqliteDB) InsertOrders(orders ...Order) error {
 }
 
 func (db *sqliteDB) InsertOrderDetails(orderDetails ...OrderDetail) error {
-	return nil
+	buildOrderDetailsInsertSQL := func(batch []OrderDetail) (sql string, params []any) {
+		rowCount := len(batch)
+		paramCount := 4
+
+		valuesSQL := buildValuesSQL(rowCount, paramCount)
+		sql = joinLines(
+			`INSERT INTO order_details (`,
+			`	id,`,
+			`	order_id,`,
+			`	pizza_id,`,
+			`	quantity`,
+			`) VALUES `+valuesSQL+";",
+		)
+
+		for _, v := range batch {
+			params = append(params, v.Id, v.OrderId, v.PizzaId, v.Quantity)
+		}
+
+		return sql, params
+	}
+
+	return sqlitePartitionedInsert(db, orderDetails, buildOrderDetailsInsertSQL)
 }
 
 func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
@@ -124,7 +149,7 @@ func (db *sqliteDB) insert(sql string, params []any) error {
 }
 
 func sqlitePartitionedInsert[T any](db *sqliteDB, items []T, buildInsertSQL sqlBuilder[T]) error {
-	for _, batch := range partition(items, 256) {
+	for _, batch := range partition(items, insertBatchSize) {
 		sql, params := buildInsertSQL(batch)
 
 		if e := db.insert(sql, params); e != nil {

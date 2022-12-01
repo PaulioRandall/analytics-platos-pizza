@@ -11,14 +11,32 @@ import (
 
 // TODO: Create SQLite helper library?
 
-var ErrSQLite = trackable.Interface("SQLite database error")
+var (
+	ErrSQLite = trackable.Interface("SQLite database error")
+
+	// See (SQLite) https://www.sqlite.org/pragma.html
+	// See (go-sqlite3) https://github.com/mattn/go-sqlite3#connection-string
+	sqlitePragma = []string{
+		// 5x the default page & cache sizes to speed things up (I'm on desktop)
+		"_page_size=5120",
+		"_cache_size=10000",
+
+		// Turn off stuff that slows inserts down, just while developing.
+		"_journal=MEMORY",
+		//"_foreign_keys=OFF",
+		//"_ignore_check_constraints=ON",
+		"_sync=OFF",
+	}
+)
 
 type sqliteDB struct {
 	conn *sql.DB
 }
 
 func OpenSQLiteDatabase(file string) (*sqliteDB, error) {
-	conn, e := sql.Open("sqlite3", file)
+	fileURL := file + "?" + strings.Join(sqlitePragma, "&")
+
+	conn, e := sql.Open("sqlite3", fileURL)
 	if e != nil {
 		return nil, ErrSQLite.Wrap(e)
 	}

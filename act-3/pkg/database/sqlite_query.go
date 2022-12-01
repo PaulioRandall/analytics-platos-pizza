@@ -86,7 +86,47 @@ func scanOrderRows(rows *sql.Rows) ([]Order, error) {
 }
 
 func (db *sqliteDB) HeadOrderDetails() ([]OrderDetail, error) {
-	return nil, nil
+	sql := joinLines(
+		`SELECT`,
+		`	id,`,
+		`	order_id,`,
+		`	pizza_id,`,
+		`	quantity`,
+		`FROM`,
+		`	order_details`,
+		`LIMIT ?;`,
+	)
+
+	rows, e := db.conn.Query(sql, QueryHeadMax)
+	if e != nil {
+		return nil, ErrQuerying.BecauseOf(e, "Querying order details")
+	}
+	defer rows.Close()
+
+	return scanOrderDetailRows(rows)
+}
+
+func scanOrderDetailRows(rows *sql.Rows) ([]OrderDetail, error) {
+	var results []OrderDetail
+
+	for rows.Next() {
+		var orderDetail OrderDetail
+
+		e := rows.Scan(
+			&orderDetail.Id,
+			&orderDetail.OrderId,
+			&orderDetail.PizzaId,
+			&orderDetail.Quantity,
+		)
+
+		if e != nil {
+			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+		}
+
+		results = append(results, orderDetail)
+	}
+
+	return results, nil
 }
 
 func (db *sqliteDB) HeadPizzas() ([]Pizza, error) {
