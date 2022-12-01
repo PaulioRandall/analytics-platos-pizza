@@ -69,7 +69,36 @@ func (db *sqliteDB) InsertPizzas(pizzas ...Pizza) error {
 }
 
 func (db *sqliteDB) InsertPizzaTypes(pizzaTypes ...PizzaType) error {
+	for _, batch := range partition(pizzaTypes, 256) {
+		sql, params := buildPizzaTypesInsertSQL(batch)
+
+		if e := db.insert(sql, params); e != nil {
+			return ErrSQLite.Wrap(e)
+		}
+	}
+
 	return nil
+}
+
+func buildPizzaTypesInsertSQL(pizzaTypes []PizzaType) (sql string, params []any) {
+	rowCount := len(pizzaTypes)
+	paramCount := 4
+
+	valuesSQL := buildValuesSQL(rowCount, paramCount)
+	sql = joinLines(
+		`INSERT INTO pizza_types (`,
+		`	id,`,
+		`	name,`,
+		`	category,`,
+		`	ingredients`,
+		`) VALUES `+valuesSQL+";",
+	)
+
+	for _, v := range pizzaTypes {
+		params = append(params, v.Id, v.Name, v.Category, v.Ingredients)
+	}
+
+	return sql, params
 }
 
 func (db *sqliteDB) insert(sql string, params []any) error {

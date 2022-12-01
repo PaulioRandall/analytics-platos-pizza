@@ -94,5 +94,45 @@ func (db *sqliteDB) HeadPizzas() ([]Pizza, error) {
 }
 
 func (db *sqliteDB) HeadPizzaTypes() ([]PizzaType, error) {
-	return nil, nil
+	sql := joinLines(
+		`SELECT`,
+		`	id,`,
+		`	name,`,
+		`	category,`,
+		`	ingredients`,
+		`FROM`,
+		`	pizza_types`,
+		`LIMIT ?;`,
+	)
+
+	rows, e := db.conn.Query(sql, QueryHeadMax)
+	if e != nil {
+		return nil, ErrQuerying.Wrap(e)
+	}
+	defer rows.Close()
+
+	return scanPizzaTypeRows(rows)
+}
+
+func scanPizzaTypeRows(rows *sql.Rows) ([]PizzaType, error) {
+	var results []PizzaType
+
+	for rows.Next() {
+		var pizzaType PizzaType
+
+		e := rows.Scan(
+			&pizzaType.Id,
+			&pizzaType.Name,
+			&pizzaType.Category,
+			&pizzaType.Ingredients,
+		)
+
+		if e != nil {
+			return nil, ErrParsing.BecauseOf(e, "Row scanning failed")
+		}
+
+		results = append(results, pizzaType)
+	}
+
+	return results, nil
 }
