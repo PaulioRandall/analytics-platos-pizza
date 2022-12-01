@@ -11,13 +11,11 @@ var (
 )
 
 func Execute() error {
-	//db, e := database.OpenSQLiteDatabase("./bin/platos-pizza.sqlite")
-	//if e != nil {
-	//	return ErrExeWorkflow.Wrap(e)
-	//}
-	//defer db.Close()
-
-	db := database.OpenInMemoryDatabase()
+	db, e := database.OpenSQLiteDatabase("./bin/platos-pizza.sqlite")
+	if e != nil {
+		return ErrExeWorkflow.Wrap(e)
+	}
+	defer db.Close()
 
 	if e := insertCSVData(db); e != nil {
 		return ErrExeWorkflow.Wrap(e)
