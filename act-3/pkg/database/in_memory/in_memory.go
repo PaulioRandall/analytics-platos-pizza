@@ -6,11 +6,9 @@ import (
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
 )
 
-const QueryHeadMax = database.QueryHeadMax
+const queryHeadMax = database.QueryHeadMax
 
 var ErrInMemory = trackable.Interface("In-memory database error")
-
-type query[T any] func() ([]T, error)
 
 type inMemory struct {
 	closed       bool
@@ -95,36 +93,4 @@ func (db *inMemory) Close() {
 	db.orderDetails = nil
 	db.pizzas = nil
 	db.pizzaTypes = nil
-}
-
-func inMemoryHead[T any](db *inMemory, items []T) ([]T, error) {
-	return inMemoryExecute(db, func() ([]T, error) {
-		if len(items) < QueryHeadMax {
-			return items, nil
-		}
-		return items[0:QueryHeadMax], nil
-	})
-}
-
-func inMemoryExecute[T any](db *inMemory, q query[T]) ([]T, error) {
-	if db.closed {
-		return nil, ErrInMemory.Wrap(database.ErrClosed)
-	}
-
-	result, e := q()
-	if e != nil {
-		e = database.ErrQuerying.Wrap(e)
-		e = ErrInMemory.Wrap(e)
-	}
-
-	return result, e
-}
-
-func inMemoryInsert(db *inMemory, f func()) error {
-	if db.closed {
-		return ErrInMemory.Wrap(database.ErrClosed)
-	}
-
-	f()
-	return nil
 }

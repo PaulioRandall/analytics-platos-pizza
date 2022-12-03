@@ -19,6 +19,7 @@ var (
 	ErrParsing   = trackable.Track("Failed to read or parse database results")
 	ErrPrinting  = trackable.Track("Failed to print rows from database")
 	ErrClosed    = trackable.Track("Can't execute requests on a closed database")
+	ErrCSVFile   = trackable.Track("Error handling CSV file")
 )
 
 // PlatosPizzaDatabase represents an interface to a database of orders, pizzas,
@@ -37,7 +38,7 @@ type PlatosPizzaDatabase interface {
 	HeadPizzas() ([]Pizza, error)
 	HeadPizzaTypes() ([]PizzaType, error)
 
-	Close() // Panics if error encountered
+	Close()
 }
 
 func Print(db PlatosPizzaDatabase) error {

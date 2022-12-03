@@ -12,6 +12,12 @@ import (
 )
 
 // TODO: Create SQLite helper library?
+// TODO: Convert to using transactions for bulk inserts
+
+const (
+	insertBatchSize = 256
+	queryHeadMax    = database.QueryHeadMax
+)
 
 var (
 	ErrSQLite = trackable.Interface("SQLite database error")
@@ -100,10 +106,21 @@ func (db *sqliteDB) createTables() error {
 	return nil
 }
 
-func (db *sqliteDB) Close() {
-	db.conn.Close()
+func (db *sqliteDB) insert(sql string, params []any) error {
+	stmt, e := db.conn.Prepare(sql)
+	if e != nil {
+		e = database.ErrPreparing.Wrap(e)
+		return database.ErrInserting.Wrap(e)
+	}
+	defer stmt.Close()
+
+	if _, e := stmt.Exec(params...); e != nil {
+		return database.ErrInserting.Wrap(e)
+	}
+
+	return nil
 }
 
-func joinLines(lines ...string) string {
-	return strings.Join(lines, "\n")
+func (db *sqliteDB) Close() {
+	db.conn.Close()
 }

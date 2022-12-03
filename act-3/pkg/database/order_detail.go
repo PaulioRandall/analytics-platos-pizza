@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/PaulioRandall/trackable"
 )
@@ -40,6 +41,45 @@ func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
 
 	PrintOrderDetails(records)
 	fmt.Println("...")
+
+	return nil
+}
+
+func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return trackable.Wrap(e, "Failed to read order details %q", filename)
+	}
+
+	for i, record := range records {
+		id, e := strconv.Atoi(record[0])
+		if e != nil {
+			return trackable.Wrap(e, "Bad order details ID discovered")
+		}
+
+		orderId, e := strconv.Atoi(record[1])
+		if e != nil {
+			return trackable.Wrap(e, "Bad order ID discovered")
+		}
+
+		quantity, e := strconv.Atoi(record[3])
+		if e != nil {
+			return trackable.Wrap(e, "Bad quantity value discovered")
+		}
+
+		orderDetail := OrderDetail{
+			Id:       id,
+			OrderId:  orderId,
+			PizzaId:  record[2],
+			Quantity: quantity,
+		}
+
+		if e = db.InsertOrderDetails(orderDetail); e != nil {
+			return trackable.Wrap(e,
+				"Failed to insert order detail at line %d", lineNumber(i),
+			)
+		}
+	}
 
 	return nil
 }

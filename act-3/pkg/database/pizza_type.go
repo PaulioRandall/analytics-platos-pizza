@@ -43,3 +43,27 @@ func QueryPrintPizzaTypes(db PlatosPizzaDatabase) error {
 
 	return nil
 }
+
+func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
+	records, e := readCSV(filename)
+	if e != nil {
+		return trackable.Wrap(e, "Failed to read pizza types %q", filename)
+	}
+
+	for i, record := range records {
+		pizzaType := PizzaType{
+			Id:          record[0],
+			Name:        record[1],
+			Category:    record[2],
+			Ingredients: record[3],
+		}
+
+		if e = db.InsertPizzaTypes(pizzaType); e != nil {
+			return trackable.Wrap(e,
+				"Failed to insert pizza type at line %d", lineNumber(i),
+			)
+		}
+	}
+
+	return nil
+}
