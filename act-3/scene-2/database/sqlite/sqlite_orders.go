@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
 )
 
 func (db *sqliteDB) InsertOrders(orders ...database.Order) error {

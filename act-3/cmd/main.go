@@ -6,7 +6,7 @@ import (
 
 	"github.com/PaulioRandall/trackable"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/workflow"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/workflow"
 )
 
 func main() {

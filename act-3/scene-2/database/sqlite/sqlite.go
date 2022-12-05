@@ -8,7 +8,7 @@ import (
 
 	"github.com/PaulioRandall/trackable"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
 )
 
 // TODO: Create SQLite helper library?

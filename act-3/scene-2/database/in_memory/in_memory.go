@@ -3,7 +3,7 @@ package in_memory
 import (
 	"github.com/PaulioRandall/trackable"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
 )
 
 const queryHeadMax = database.QueryHeadMax

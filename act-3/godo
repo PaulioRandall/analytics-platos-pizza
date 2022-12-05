@@ -20,7 +20,6 @@ printUsage() {
   println "\t" "./godo fmt   " "\t" "fmt"
   println "\t" "./godo test  " "\t" "fmt -> build -> test -> vet"
   println "\t" "./godo run   " "\t" "fmt -> build -> test -> vet -> run"
-  println "\t" "./godo dev   " "\t" "fmt -> build -> test -> vet -> run (dev scroll)"
 }
 
 println() {
@@ -35,7 +34,6 @@ goDoc() {
   doc_port=":6060"
 
   println "Documentation..."
-  println "\t" "Firefly - http://localhost${doc_port}/pkg/github.com/PaulioRandall/firefly-go/"
   println "\t" "Libs    - http://localhost${doc_port}/pkg/#thirdparty"
   println "\t" "Go      - http://localhost${doc_port}/pkg/#stdlib"
   println "\t" "All     - http://localhost${doc_port}/"

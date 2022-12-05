@@ -3,8 +3,8 @@ package workflow
 import (
 	"github.com/PaulioRandall/trackable"
 
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database"
-	"github.com/PaulioRandall/analytics-platos-pizza/act-3/pkg/database/sqlite"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
+	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database/sqlite"
 )
 
 var (
