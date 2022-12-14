@@ -1,5 +1,5 @@
-github.com/PaulioRandall/trackable v0.8.0 h1:X/84NJtyY7rAUkQGJipUH2aY0CmLqH5mDio7XsGfFIs=
-github.com/PaulioRandall/trackable v0.8.0/go.mod h1:6L9EkzixLM+nchhYv/5WWvXIa5si0rHnzDBBWYZKBP0=
+github.com/PaulioRandall/go-trackerr v0.14.0 h1:ta3XsWqCYrOEJlX3db2De1nz28qH9eJ84/JDQSwbioo=
+github.com/PaulioRandall/go-trackerr v0.14.0/go.mod h1:uXAjtkBJFj4ZfjJ02qxnxCh+60hfahUblAwVVU15XK4=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/mattn/go-sqlite3 v1.14.16 h1:yOQRA0RpS5PFz/oikGwBEqvAWhWg5ufRz4ETLjwpU1Y=
 github.com/mattn/go-sqlite3 v1.14.16/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=

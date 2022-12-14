@@ -3,8 +3,6 @@ package database
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/PaulioRandall/trackable"
 )
 
 type Pizza struct {
@@ -33,7 +31,7 @@ func QueryPrintPizzas(db PlatosPizzaDatabase) error {
 	records, e := db.HeadPizzas()
 
 	if e != nil {
-		return trackable.WrapAtInterface(e, "database.QueryPrintPizzas")
+		return ErrDatabase.CausedBy(e, "database.QueryPrintPizzas")
 	}
 
 	PrintPizzas(records)
@@ -45,13 +43,13 @@ func QueryPrintPizzas(db PlatosPizzaDatabase) error {
 func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return trackable.Wrap(e, "Failed to read pizzas %q", filename)
+		return ErrDatabase.CausedBy(e, "Failed to read pizzas %q", filename)
 	}
 
 	for i, record := range records {
 		price, e := strconv.ParseFloat(record[3], 64)
 		if e != nil {
-			return trackable.Wrap(e, "Bad price value discovered")
+			return ErrDatabase.CausedBy(e, "Bad price value discovered")
 		}
 
 		pizza := Pizza{
@@ -62,7 +60,7 @@ func InsertPizzasFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizzas(pizza); e != nil {
-			return trackable.Wrap(e, "Failed to insert pizza at line %d", lineNumber(i))
+			return ErrDatabase.CausedBy(e, "Failed to insert pizza at line %d", lineNumber(i))
 		}
 	}
 

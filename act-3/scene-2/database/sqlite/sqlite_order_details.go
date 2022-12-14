@@ -45,7 +45,8 @@ func (db *sqliteDB) HeadOrderDetails() ([]database.OrderDetail, error) {
 
 	rows, e := db.conn.Query(sql, queryHeadMax)
 	if e != nil {
-		return nil, database.ErrQuerying.BecauseOf(e, "Querying order details")
+		e = database.ErrQuerying.CausedBy(e, "Querying order details")
+		return nil, ErrSQLite.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -66,7 +67,8 @@ func scanOrderDetailRows(rows *sql.Rows) ([]database.OrderDetail, error) {
 		)
 
 		if e != nil {
-			return nil, database.ErrParsing.BecauseOf(e, "Row scanning failed")
+			e = database.ErrParsing.CausedBy(e, "Row scanning failed")
+			return nil, ErrSQLite.Wrap(e)
 		}
 
 		results = append(results, orderDetail)

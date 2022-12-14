@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/PaulioRandall/trackable"
+	"github.com/PaulioRandall/go-trackerr"
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/workflow"
 )
@@ -12,8 +12,11 @@ import (
 func main() {
 	fmt.Println()
 
-	if e := workflow.Execute(); e != nil {
-		trackable.Debug(e)
+	var e error
+	defer trackerr.DebugPanic(&e)
+
+	if e = workflow.Execute(); e != nil {
+		trackerr.Debug(e)
 		os.Exit(1)
 	}
 

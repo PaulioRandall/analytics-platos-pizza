@@ -45,7 +45,8 @@ func (db *sqliteDB) HeadPizzaTypes() ([]database.PizzaType, error) {
 
 	rows, e := db.conn.Query(sql, queryHeadMax)
 	if e != nil {
-		return nil, database.ErrQuerying.BecauseOf(e, "Querying pizza types")
+		e = database.ErrQuerying.CausedBy(e, "Querying pizza types")
+		return nil, ErrSQLite.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -66,7 +67,8 @@ func scanPizzaTypeRows(rows *sql.Rows) ([]database.PizzaType, error) {
 		)
 
 		if e != nil {
-			return nil, database.ErrParsing.BecauseOf(e, "Row scanning failed")
+			e = database.ErrParsing.CausedBy(e, "Row scanning failed")
+			return nil, ErrSQLite.Wrap(e)
 		}
 
 		results = append(results, pizzaType)

@@ -2,8 +2,6 @@ package database
 
 import (
 	"fmt"
-
-	"github.com/PaulioRandall/trackable"
 )
 
 type PizzaType struct {
@@ -35,7 +33,7 @@ func QueryPrintPizzaTypes(db PlatosPizzaDatabase) error {
 	records, e := db.HeadPizzaTypes()
 
 	if e != nil {
-		return trackable.WrapAtInterface(e, "database.QueryPrintPizzaTypes")
+		return ErrDatabase.CausedBy(e, "database.QueryPrintPizzaTypes")
 	}
 
 	PrintPizzaTypes(records)
@@ -47,7 +45,7 @@ func QueryPrintPizzaTypes(db PlatosPizzaDatabase) error {
 func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return trackable.Wrap(e, "Failed to read pizza types %q", filename)
+		return ErrDatabase.CausedBy(e, "Failed to read pizza types %q", filename)
 	}
 
 	for i, record := range records {
@@ -59,7 +57,7 @@ func InsertPizzaTypesFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertPizzaTypes(pizzaType); e != nil {
-			return trackable.Wrap(e,
+			return ErrDatabase.CausedBy(e,
 				"Failed to insert pizza type at line %d", lineNumber(i),
 			)
 		}

@@ -2,8 +2,6 @@ package database
 
 import (
 	"fmt"
-
-	"github.com/PaulioRandall/trackable"
 )
 
 type MetadataEntry struct {
@@ -24,7 +22,7 @@ func QueryPrintMetadata(db PlatosPizzaDatabase) error {
 	records, e := db.AllMetadata()
 
 	if e != nil {
-		return trackable.Wrap(e, "Quering all metadata")
+		return ErrDatabase.CausedBy(e, "Quering all metadata")
 	}
 
 	PrintMetadata(records)
@@ -34,7 +32,7 @@ func QueryPrintMetadata(db PlatosPizzaDatabase) error {
 func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return trackable.Wrap(e, "Failed to read metadata %q", filename)
+		return ErrDatabase.CausedBy(e, "Failed to read metadata %q", filename)
 	}
 
 	for i, record := range records {
@@ -46,7 +44,7 @@ func InsertMetadataFromCSV(db PlatosPizzaDatabase, filename string) error {
 
 		e := db.InsertMetadata(entry)
 		if e != nil {
-			return trackable.Wrap(e,
+			return ErrDatabase.CausedBy(e,
 				"Failed to insert metadata record at line %d", lineNumber(i),
 			)
 		}

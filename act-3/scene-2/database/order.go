@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/PaulioRandall/trackable"
 )
 
 // Order represents an order of pizzas, one or many pizzas per order
@@ -30,7 +28,7 @@ func QueryPrintOrders(db PlatosPizzaDatabase) error {
 	records, e := db.HeadOrders()
 
 	if e != nil {
-		return trackable.WrapAtInterface(e, "database.QueryPrintOrders")
+		return ErrDatabase.CausedBy(e, "database.QueryPrintOrders")
 	}
 
 	PrintOrders(records)
@@ -42,19 +40,19 @@ func QueryPrintOrders(db PlatosPizzaDatabase) error {
 func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return trackable.Wrap(e, "Failed to read orders %q", filename)
+		return ErrDatabase.CausedBy(e, "Failure to read orders %q", filename)
 	}
 
 	orders := make([]Order, len(records))
 	for i, record := range records {
 		id, e := strconv.Atoi(record[0])
 		if e != nil {
-			return trackable.Wrap(e, "Bad order ID discovered")
+			return ErrDatabase.CausedBy(e, "Bad order ID discovered")
 		}
 
 		datetime, e := time.Parse(DatetimeFormat, record[1]+" "+record[2])
 		if e != nil {
-			return trackable.Wrap(e, "Bad order date or time discovered")
+			return ErrDatabase.CausedBy(e, "Bad order date or time discovered")
 		}
 
 		orders[i] = Order{
@@ -64,7 +62,7 @@ func InsertOrdersFromCSV(db PlatosPizzaDatabase, filename string) error {
 	}
 
 	if e = db.InsertOrders(orders...); e != nil {
-		return e
+		return ErrDatabase.Wrap(e)
 	}
 
 	return nil

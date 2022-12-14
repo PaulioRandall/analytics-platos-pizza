@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"github.com/PaulioRandall/trackable"
+	"github.com/PaulioRandall/go-trackerr"
 )
 
 const (
@@ -12,14 +12,17 @@ const (
 )
 
 var (
-	ErrCreating  = trackable.Track("Failed to create database or tables")
-	ErrPreparing = trackable.Track("Failed to prepare database query or statement")
-	ErrInserting = trackable.Track("Failed to execute data insert into database")
-	ErrQuerying  = trackable.Track("Failed to execute query on database")
-	ErrParsing   = trackable.Track("Failed to read or parse database results")
-	ErrPrinting  = trackable.Track("Failed to print rows from database")
-	ErrClosed    = trackable.Track("Can't execute requests on a closed database")
-	ErrCSVFile   = trackable.Track("Error handling CSV file")
+	ErrDatabase = trackerr.Checkpoint("Database error")
+
+	ErrCreating  = trackerr.Track("Failed to create database or tables")
+	ErrPreparing = trackerr.Track("Failed to prepare database query or statement")
+	ErrInserting = trackerr.Track("Failed to execute data insert into database")
+	ErrQuerying  = trackerr.Track("Failed to execute query on database")
+	ErrParsing   = trackerr.Track("Failed to read or parse database results")
+	ErrPrinting  = trackerr.Track("Failed to print rows from database")
+	ErrClosed    = trackerr.Track("Can't execute requests on a closed database")
+
+	ErrCSVFile = trackerr.Track("Error handling CSV file")
 )
 
 // PlatosPizzaDatabase represents an interface to a database of orders, pizzas,

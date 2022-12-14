@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/PaulioRandall/trackable"
+	"github.com/PaulioRandall/go-trackerr"
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
 )
@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	ErrSQLite = trackable.Interface("SQLite database error")
+	ErrSQLite = trackerr.Checkpoint("SQLite database error")
 
 	// See (SQLite) https://www.sqlite.org/pragma.html
 	// See (go-sqlite3) https://github.com/mattn/go-sqlite3#connection-string

@@ -1,14 +1,14 @@
 package in_memory
 
 import (
-	"github.com/PaulioRandall/trackable"
+	"github.com/PaulioRandall/go-trackerr"
 
 	"github.com/PaulioRandall/analytics-platos-pizza/act-3/scene-2/database"
 )
 
 const queryHeadMax = database.QueryHeadMax
 
-var ErrInMemory = trackable.Interface("In-memory database error")
+var ErrInMemory = trackerr.Checkpoint("In-memory database error")
 
 type inMemory struct {
 	closed       bool

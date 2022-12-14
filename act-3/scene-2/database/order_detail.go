@@ -3,8 +3,6 @@ package database
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/PaulioRandall/trackable"
 )
 
 // OrderDetail represents a specific pizza type order, one or more pizzas,
@@ -36,7 +34,7 @@ func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
 	records, e := db.HeadOrderDetails()
 
 	if e != nil {
-		return trackable.WrapAtInterface(e, "database.QueryPrintOrderDetails")
+		return ErrDatabase.CausedBy(e, "database.QueryPrintOrderDetails")
 	}
 
 	PrintOrderDetails(records)
@@ -48,23 +46,23 @@ func QueryPrintOrderDetails(db PlatosPizzaDatabase) error {
 func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 	records, e := readCSV(filename)
 	if e != nil {
-		return trackable.Wrap(e, "Failed to read order details %q", filename)
+		return ErrDatabase.CausedBy(e, "Failed to read order details %q", filename)
 	}
 
 	for i, record := range records {
 		id, e := strconv.Atoi(record[0])
 		if e != nil {
-			return trackable.Wrap(e, "Bad order details ID discovered")
+			return ErrDatabase.CausedBy(e, "Bad order details ID discovered")
 		}
 
 		orderId, e := strconv.Atoi(record[1])
 		if e != nil {
-			return trackable.Wrap(e, "Bad order ID discovered")
+			return ErrDatabase.CausedBy(e, "Bad order ID discovered")
 		}
 
 		quantity, e := strconv.Atoi(record[3])
 		if e != nil {
-			return trackable.Wrap(e, "Bad quantity value discovered")
+			return ErrDatabase.CausedBy(e, "Bad quantity value discovered")
 		}
 
 		orderDetail := OrderDetail{
@@ -75,7 +73,7 @@ func InsertOrderDetailsFromCSV(db PlatosPizzaDatabase, filename string) error {
 		}
 
 		if e = db.InsertOrderDetails(orderDetail); e != nil {
-			return trackable.Wrap(e,
+			return ErrDatabase.CausedBy(e,
 				"Failed to insert order detail at line %d", lineNumber(i),
 			)
 		}

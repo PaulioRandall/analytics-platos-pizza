@@ -44,7 +44,8 @@ func (db *sqliteDB) HeadOrders() ([]database.Order, error) {
 
 	rows, e := db.conn.Query(sql, queryHeadMax)
 	if e != nil {
-		return nil, database.ErrQuerying.BecauseOf(e, "Querying orders")
+		e = database.ErrQuerying.CausedBy(e, "Querying orders")
+		return nil, ErrSQLite.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -65,7 +66,8 @@ func scanOrderRows(rows *sql.Rows) ([]database.Order, error) {
 
 		order.Datetime, e = time.Parse(database.DatetimeFormat, datetimeStr)
 		if e != nil {
-			return nil, database.ErrParsing.Wrap(e)
+			e = database.ErrParsing.Wrap(e)
+			return nil, ErrSQLite.Wrap(e)
 		}
 
 		results = append(results, order)

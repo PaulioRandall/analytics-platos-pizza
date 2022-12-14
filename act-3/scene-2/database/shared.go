@@ -14,7 +14,7 @@ func lineNumber(i int) int {
 func readCSV(filename string) ([][]string, error) {
 	f, e := os.Open(filename)
 	if e != nil {
-		return nil, ErrCSVFile.BecauseOf(e, "Could not open file %q", filename)
+		return nil, ErrCSVFile.CausedBy(e, "Could not open file %q", filename)
 	}
 	defer f.Close()
 
@@ -23,7 +23,7 @@ func readCSV(filename string) ([][]string, error) {
 	records = records[1:] // Remove header
 
 	if e != nil {
-		return nil, ErrCSVFile.BecauseOf(e, "Could not read file %q", filename)
+		return nil, ErrCSVFile.CausedBy(e, "Could not read file %q", filename)
 	}
 
 	return records, nil

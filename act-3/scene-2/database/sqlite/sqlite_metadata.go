@@ -43,7 +43,8 @@ func (db *sqliteDB) AllMetadata() ([]database.MetadataEntry, error) {
 
 	rows, e := db.conn.Query(sql)
 	if e != nil {
-		return nil, database.ErrQuerying.Wrap(e)
+		e = database.ErrQuerying.Wrap(e)
+		return nil, ErrSQLite.Wrap(e)
 	}
 	defer rows.Close()
 
@@ -58,7 +59,8 @@ func scanMetadataRows(rows *sql.Rows) ([]database.MetadataEntry, error) {
 
 		e := rows.Scan(&entry.Table, &entry.Field, &entry.Description)
 		if e != nil {
-			return nil, database.ErrParsing.Wrap(e)
+			e = database.ErrParsing.Wrap(e)
+			return nil, ErrSQLite.Wrap(e)
 		}
 
 		results = append(results, entry)
