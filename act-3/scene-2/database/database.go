@@ -45,32 +45,22 @@ type PlatosPizzaDatabase interface {
 }
 
 func Print(db PlatosPizzaDatabase) error {
-	if e := QueryPrintMetadata(db); e != nil {
-		return ErrPrinting.Wrap(e)
+	queryPrintFuncs := []func(PlatosPizzaDatabase) error{
+		QueryPrintMetadata,
+		QueryPrintOrders,
+		QueryPrintOrderDetails,
+		QueryPrintPizzas,
+		QueryPrintPizzaTypes,
 	}
 
-	fmt.Println()
+	for i, f := range queryPrintFuncs {
+		if i != 0 {
+			fmt.Println()
+		}
 
-	if e := QueryPrintOrders(db); e != nil {
-		return ErrPrinting.Wrap(e)
-	}
-
-	fmt.Println()
-
-	if e := QueryPrintOrderDetails(db); e != nil {
-		return ErrPrinting.Wrap(e)
-	}
-
-	fmt.Println()
-
-	if e := QueryPrintPizzas(db); e != nil {
-		return ErrPrinting.Wrap(e)
-	}
-
-	fmt.Println()
-
-	if e := QueryPrintPizzaTypes(db); e != nil {
-		return ErrPrinting.Wrap(e)
+		if e := f(db); e != nil {
+			return ErrPrinting.Wrap(e)
+		}
 	}
 
 	return nil
